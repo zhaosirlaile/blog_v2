@@ -1,0 +1,196 @@
+## 简介
+
+> **Weex 是使用流行的 Web 开发体验来开发高性能原生应用的框架。**
+>
+> "*Weex*" 的发音是 /wiːks/, 和 "*Weeks*" 同音。
+
+Weex 致力于使开发者能基于通用跨平台的 Web 开发语言和开发经验，来构建 Android、iOS 和 Web 应用。简单来说，在集成了 WeexSDK 之后，**你可以使用JavaScript 语言和前端开发经验来开发移动应用。**
+
+官网：<https://weex.apache.org/zh/>
+
+## 下载
+
+> 请先安装**node**和**webpack**，再下载**weex-toolkit**。通常，安装了 Node.js 环境，npm 包管理工具也随之安装了。因此，直接使用 npm 来安装 `weex-toolkit`，而 weex 依赖 webpack 。
+
+```shell
+npm i -g weex-toolkit #安装 weex-toolkit
+weex -v		#查看weex工具版本
+```
+
+## 创建项目
+
+1. **在命令行中初始化项目**：
+
+   ```shell
+   weex create awesome-project
+   ```
+
+   其中 `awesome-project` 是创建项目的文件夹名称。
+
+   ![1567850529669](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1567850529669.png)
+
+   之后会询问你输入相关的基本信息，例如`Project name`，`Project description` 一些基本信息，你按照你的需求填写就可以了。
+
+2. **进入项目**：
+   你会看见如下图所示的项目目录结构：
+   ![1567850472446](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1567850472446.png)
+
+3. **安装 `package.json` 文件中的相关依赖：**
+
+   打开该文件夹下的命令行，输入：
+
+   ```shell
+   npm i
+   ```
+
+   ![1567850848160](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1567850848160.png)
+
+4. **添加 Android 的平台项目**
+
+   ```shell
+   weex platform add android
+   ```
+
+5. **启动项目**：
+   继续输入如下的指令：
+
+   ```shell
+   npm start
+   ```
+
+   会弹出一个网页出来，这里是模拟手机端的一个界面，如果修改了代码，我们可以所见即所得。
+
+   ![1567851475817](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1567851475817.png)
+
+
+
+   `注意：浏览器必须是Chrome，其他浏览器不支持`
+
+   并且命令行中会变成如下界面，注意不要关闭，要一直打开，因为weex会监听整个项目，如果你的项目修改了，他会重新打包。即进行热更新
+
+   ![1567851284809](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1567851284809.png)
+
+## 安装手机模拟器
+
+因为我的电脑不是 `Mac` 所以只能对`Android` 进行演示，这里也只使用 **Android Stdio** 进行演示。
+
+### 下载 Android Stdio
+
+官网：<http://www.android-studio.org/>
+
+![1567852034354](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1567852034354.png)
+
+### 安装 Android Stdio
+
+下载完成后，打开这个文件
+
+一般情况都选择`Next`，就安装好了
+
+安装完成之后会弹出以下界面：
+
+![1567853274663](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1567853274663.png)
+
+
+
+### 下载 SDK
+
+![1567853540938](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1567853540938.png)
+
+![1567853775570](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1567853775570.png)
+
+这个过程比较漫长，需要耐心的等待（毕竟是国外的服务器）
+
+## 配置 Android 的环境变量
+
+1. 先在用户变量中添加一个环境变量
+
+![1567853954777](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1567853954777.png)
+
+你的地址可能和我的不一样，可以在这里找到
+
+![1567854000516](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1567854000516.png)
+
+1. 然后配置系统变量
+
+![1567854080446](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1567854080446.png)
+
+![1567854134937](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1567854134937.png)
+
+我们要添加两个地址：
+
+- 其中一个地址：`刚刚我们添加的用户变量地址` + `\platforms-tools`
+
+![1567854439933](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1567854439933.png)
+
+- 另一个地址：`刚刚我们添加的用户变量地址` + `\tools`
+
+  ![1567854566228](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1567854566228.png)
+
+点击确定就配置好了：
+
+## 开启 Android 虚拟机
+
+![1567854747897](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1567854747897.png)
+
+进入到我们刚才创建的项目：
+
+![1567855072665](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1567855072665.png)
+
+然后进入到 `platforms`目录下，选择 **android**
+
+![1567855245455](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1567855245455.png)
+
+![1567855298692](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1567855298692.png)
+
+稍等一下，第一次构建项目非常的慢，如果你的网速差，会等很久。
+
+构建项目完成后它会问你 `Gradle` 是否升级到 5.X.X 版本，**千万不要升级**，我们的项目是 4.6 的，**如果升级会报错的**.
+
+![1567858350696](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1567858350696.png)
+
+点击启动：
+
+![1567858420493](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1567858420493.png)
+
+它会叫我们配置机型，其实主要是选择屏幕的尺寸
+
+![1567858511038](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1567858511038.png)
+
+我是选择这个机型的
+
+![1567858574455](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1567858574455.png)
+
+选择最新的系统的版本，这里我已经下载好了，如果没有下载就等着下载完成吧，这个过程很慢，需要等待。
+
+接下来就没什么好说的了。
+
+![1567858700769](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1567858700769.png)
+
+选择我们刚刚创建的虚拟设配，点击ok行了。
+
+![1567858820727](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1567858820727.png)
+
+当看到这个说明你的手机已经配置成功了
+
+## 更新 Android 虚拟机
+
+weex 没有更改前端的代码，就可以热更新的看到虚拟机的内容的功能。你可以考虑`weexplus`，这个有这方面的热更新
+
+weex 的更新比较麻烦需要将更目录下的`dist` 目录下的 `index.js` 的内容拷贝到，如下图所示：
+
+![1567859168100](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1567859168100.png)
+
+保存之后，在点击启动，选择我们正在运行的设备就行了![1567859244410](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1567859244410.png)
+
+你就可以看到网页上的效果了
+
+![1567859302566](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1567859302566.png)
+
+
+
+## 打包构建 Android APP
+
+![1567859395857](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1567859395857.png)
+
+等一会，右下角会有一个浮框，点击这个浮框，里面就是你的app了
+

@@ -1,0 +1,308 @@
+﻿
+
+
+
+## 翻转字符串算法挑战
+
+```javascript
+function reverseString(str) {
+    return str.split('').reverse().join('');
+}
+reverseString("hello");
+```
+
+
+
+## 阶乘算法挑战
+
+```javascript
+function factorialize(num) {
+    let y = 1;
+    for(let i = 1; i <= num ;i ++){
+        y *= i;
+    }
+    num = y;
+    return num;
+}
+factorialize(5);
+```
+
+
+
+## 回文算法挑战
+
+```javascript
+function palindrome(str) {
+    let myStr = str;
+    let check = myStr.replace(/[\W|_]|" "/g,"");
+    if (check.toLowerCase() === check.split("").reverse().join("").toLowerCase()){
+        return true;
+    } else {
+        return false;
+    }
+}
+palindrome("0_0 (: /-\ :) 0_0");
+```
+
+
+
+## 寻找最长的单词算法挑战
+
+```javascript
+function findLongestWord(str) {
+    let myStr = str.split(" ");
+    let myMax = myStr[0].length;
+    for(let i = 1 ; i < myStr.length ; i ++){
+        if(myMax < myStr[i].length){
+            myMax = myStr[i].length; 
+        }
+    }
+    return myMax;
+}
+findLongestWord("The quick brown fox jumped over the lazy dog");
+```
+
+
+
+## 设置首字母大写算法挑战
+
+```javascript
+function titleCase(str) {
+        let arr = str.split(' ');
+        for (let i = 0 ; i < arr.length;i ++) {
+            arr[i] = arr[i].split('');
+            for (let j = 0; j <arr[i].length;j++){
+                if (j === 0) {
+                    arr[i][j] = arr[i][j].toUpperCase();
+                } else {
+                    arr[i][j] = arr[i][j].toLowerCase();
+                }
+            }
+            arr[i] =arr[i].join('');
+        }
+        str = arr.join(' ');
+        return str;
+}
+titleCase("I'm a little tea pot");
+```
+
+
+
+## 寻找数组中的最大值算法挑战
+
+```javascript
+function largestOfFour(arr) {
+        let myArr = arr;
+        let max = [];
+        for (let i = 0; i < myArr.length; i++) {
+             max[i] = myArr[i].reduce(function (a,b) {
+                return a>b?a:b;
+            })
+        }
+        arr = max;
+        return arr;
+    }
+largestOfFour([[4, 5, 1, 3], [13, 27, 18, 26], [32, 35, 37, 39], [1000, 1001, 857, 1]]);
+```
+
+
+
+## 确认末尾字符算法挑战
+
+```javascript
+function confirmEnding(str, target) {
+    let targetLength = target.length;
+    return str.substring(str.length-targetLength) === target ? true:false;
+}
+confirmEnding("Bastian", "n");
+```
+
+
+
+## 重复操作算法挑战
+
+```javascript
+function repeat(str, num) {
+    if (num < 0) {
+        str = '';
+    } else {
+        let myStr = str;
+        for(let i =1; i < num ; i ++) {
+            str += myStr;
+        }
+    }
+    return str;
+}
+repeat("abc", 3);
+```
+
+
+
+## 字符串截取算法挑战
+
+```javascript
+function truncate(str, num) {
+    let strLength = str.length;
+    if (num <= 3) {
+        let letterStr = str.substring(0,num) + '...';
+        str = letterStr;
+    } else {
+        if (strLength <= num) {
+            str = str.substring(0,num);
+        } else {
+            let moreStr = str.substring(0,num-3)+'...';
+            str = moreStr;
+        }
+    }
+    return str;
+}
+truncate("A-tisket a-tasket A green and yellow basket", 11);
+```
+
+
+
+## 数组分割算法挑战
+
+```javascript
+function chunk(arr, size) {
+    let myArr = []
+    let bitArr = [];
+    for (;arr.length >=1; ) {
+        console.log(arr.length);
+        bitArr = arr.splice(0,size);
+        myArr.push(bitArr);
+    }
+    arr = myArr;
+    return arr;
+}
+
+chunk(["a", "b", "c", "d"], 2);
+```
+
+
+
+## 数组截断算法挑战
+
+```javascript
+function slasher(arr, howMany) {
+    arr.splice(0,howMany);
+    return arr;
+}
+slasher([1, 2, 3], 2);
+```
+
+
+
+## 数组查询算法挑战
+
+```javascript
+function mutation(arr) {
+    let firstStr = arr[0].toLowerCase();
+    let lastStr = arr[1].toLowerCase().split('');
+    let flot = true;       //标志位
+    for (let i = 0 ;i < lastStr.length; i ++) {
+        if (firstStr.indexOf(lastStr[i]) === -1) {
+            flot = false;
+            break;
+        }
+    }
+    return flot;
+}
+mutation(["hello", "hey"]);
+```
+
+
+
+## 删除数组中特定值算法挑战
+
+```javascript
+function bouncer(arr) {
+    let myArr = [];
+    for (let i = 0; i< arr.length; i ++) {
+        if (arr[i] ) {
+            myArr.push(arr[i]);
+        }
+    }
+    arr = myArr;
+    return arr;
+}
+bouncer([7, "ate", "", false, 9]);
+```
+
+
+
+## 去除数组中任意多个值算法挑战
+
+```javascript
+function destroyer(arr) {
+    let arg = Array.prototype.slice.call(arguments);//将伪数组转换成数组
+    let parameterList  = arg.slice(1);
+    let myArr = arg[0].filter(function (item) {
+        let flot = false;
+        if (parameterList.indexOf(item) === -1) {
+            flot = true;
+        }
+        return flot;
+    });
+    arr = myArr;
+    return arr;
+}
+destroyer([1, 2, 3, 1, 2, 3], 2, 3);
+```
+
+
+
+## 数组排序并插入值算法挑战
+
+```javascript
+function where(arr, num) {
+        let myArr = arr.sort((a,b)=>{
+            return a-b;
+        });
+        for (let i = 0 ;i < myArr.length; i ++) {
+            if( myArr[i] > num) {
+                myArr.splice(i,0,num);
+                break;
+            }
+             if (i === myArr.length - 1) {
+                 myArr.push(num);
+                 break;
+             }
+        }
+        num = myArr.indexOf(num);
+        return num;
+    }
+where([40, 60], 50);
+```
+
+
+
+## 位移密码算法挑战
+
+```javascript
+function rot13(str) {
+    let reg = /[A-Z]/; //定义一个正则表达式
+    let result;         //str[i] 单个字符比较的结果
+    const translateNumber = 13; //定义一个常量
+    let eachStr;
+    let eachNumber;
+    let myStr = '';
+    for (let i = 0; i < str.length; i++) {
+        eachStr = str.charAt(i);
+        result = reg.test(eachStr);
+        if ( result ) {
+            eachNumber = eachStr.charCodeAt()+translateNumber;
+            if (eachNumber > 90) {
+                eachNumber = 64 + (eachNumber - 90)  ;
+            }
+            eachStr = String.fromCharCode(eachNumber);
+        }
+        myStr += eachStr;
+    }
+    str = myStr;
+    return str;
+}
+rot13("SERR PBQR PNZC");
+```
+
+时间：2019年3月16日17:00:21

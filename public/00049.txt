@@ -1,0 +1,869 @@
+## 类
+
+### 介绍
+
+ 从 ES6 开始，JS 程序员将能够使用基于类的面向对象的方式。 使用TypeScript，我们允许开发者现在就使用这些特性，并且编译后的 JS 可以在所有主流浏览器和平台上运行，而不需要等到下个 JS 版本。
+
+### 使用
+
+```typescript
+class Greeter {
+    greeting: string
+    constructor (message: string) {
+        this.greeting = message;
+    }
+    greet(){
+        return "Hello, " + this.greeting;
+    }
+    
+}
+let greeter = new Greeter('world')
+
+console.log(greeter.greet());
+```
+
+在 TS 中可以约束参入的值
+
+### 继承
+
+和 ES6 的语法一样，如果你不会 ES6 的语法，最好还是看一下阮老师写的：<https://es6.ruanyifeng.com/#docs/class>
+
+```typescript
+class Animal {
+    name: string;
+    constructor(theName: string) { this.name = theName; }
+    move(distanceInMeters: number = 0) {
+        console.log(`${this.name} moved ${distanceInMeters}m.`);
+    }
+}
+
+class Snake extends Animal {
+    constructor(name: string) { super(name); }
+    move(distanceInMeters = 5) {
+        console.log("Slithering...");
+        super.move(distanceInMeters);
+    }
+}
+
+class Horse extends Animal {
+    constructor(name: string) { super(name); }
+    move(distanceInMeters = 45) {
+        console.log("Galloping...");
+        super.move(distanceInMeters);
+    }
+}
+
+let sam = new Snake("Sammy the Python");
+let tom: Animal = new Horse("Tommy the Palomino");
+
+sam.move();
+tom.move(34);
+```
+
+定义一个可以继承方法和对象的类。
+
+### 修饰符
+
+**默认为公共(public)**
+
+我们之前在属性和方法前没有写任何东西，就意味着默认是 `public`，就像下面一样
+
+`public` 意味着 **我们可以自由的访问程序里定义的成员**
+
+```typescript
+class Animal {
+    public name: string;
+    public constructor(theName: string) { this.name = theName; }
+    public move(distanceInMeters: number) {
+        console.log(`${this.name} moved ${distanceInMeters}m.`);
+    }
+}
+```
+
+
+
+**私有(private)**
+
+`private` 意味着 **它就不能在声明它的类的外部访问，是可以继承** ,例如：
+
+```typescript
+class Animal {
+    private name: string;
+    constructor(theName: string) { this.name = theName; }
+}
+
+new Animal("Cat").name; // 错误: 'name' 是私有的.
+```
+
+> 当我们比较两种不同的类型时，并不在乎它们从何处而来，如果所有成员的类型都是兼容的，我们就认为它们的类型是兼容的。然而，当我们比较带有 `private`或 `protected`成员的类型的时候，情况就不同了。如果其中一个类型里包含一个 `private`成员，那么只有当另外一个类型中也存在这样一个 `private`成员， 并且它们都是来自同一处声明时，我们才认为这两个类型是兼容的。 对于 `protected`成员也使用这个规则。
+
+```typescript
+class Animal {
+    private name: string;
+    constructor(theName: string) { this.name = theName; }
+}
+
+class Rhino extends Animal {
+    constructor() { super("Rhino"); }
+}
+
+class Employee {
+    private name: string;
+    constructor(theName: string) { this.name = theName; }
+}
+
+let animal = new Animal("Goat");
+let rhino = new Rhino();
+let employee = new Employee("Bob");
+
+animal = rhino;
+animal = employee; // 错误: Animal 与 Employee 不兼容.
+```
+
+在这里为什么Animal 与 Employee 不兼容，而 Animal 和 Rhino 就兼容呢？虽然 Animal 和 Employee 一样，仅仅 名字不同。就是因为 private，上面说的比较规则。因为 Animal 和 Rhino 是继承关系，属于同一声明。
+
+**protected**
+
+`protected`修饰符与 `private`修饰符的行为很相似，但有一点不同， `protected`成员在派生（继承）类中仍然可以访问
+
+```typescript
+class Person {
+    protected name: string;
+    constructor(name: string) { this.name = name; }
+}
+
+class Employee extends Person {
+    private department: string;
+
+    constructor(name: string, department: string) {
+        super(name)
+        this.department = department;
+    }
+
+    public getElevatorPitch() {
+        return `Hello, my name is ${this.name} and I work in ${this.department}.`;
+    }
+}
+
+let howard = new Employee("Howard", "Sales");
+console.log(howard.getElevatorPitch());
+console.log(howard.name); // 错误
+```
+
+注意，我们不能在 `Person`类外使用 `name`，但是我们仍然可以通过 `Employee`类的实例方法访问，因为 `Employee`是由 `Person`派生而来的。
+
+构造函数也可以被标记成 `protected`。 这意味着这个类不能在包含它的类外被实例化，但是能被继承。比如，
+
+```typescript
+class Person {
+    protected name: string;
+    protected constructor(theName: string) { this.name = theName; }
+}
+
+// Employee 能够继承 Person
+class Employee extends Person {
+    private department: string;
+
+    constructor(name: string, department: string) {
+        super(name);
+        this.department = department;
+    }
+
+    public getElevatorPitch() {
+        return `Hello, my name is ${this.name} and I work in ${this.department}.`;
+    }
+}
+
+let howard = new Employee("Howard", "Sales");
+let john = new Person("John"); // 错误: 'Person' 的构造函数是被保护的.
+```
+
+**static**
+
+之前的代码都是在讨论实例的，**staic** 修饰符是 **存在于类本身上面而不是类的实例上**，被标记的静态属性或方法都只可以在类上访问，而在类创建的实例上是不可以进行访问的。
+
+```typescript
+class Grid {
+    static origin = {x: 0, y: 0};
+    static calculateDistanceFromOrigin(point: {x: number; y: number;}) {
+        let xDist = (point.x - Grid.origin.x);
+        let yDist = (point.y - Grid.origin.y);
+        return Math.sqrt(xDist * xDist + yDist * yDist) / this.scale;
+    }
+    scale:number
+    constructor (scale: number) {
+        this.scale = scale;
+     }
+}
+
+let grid1 = new Grid(1.0);  // 1x scale
+let grid2 = new Grid(5.0);  // 5x scale
+console.log(grid1.scale);
+grid1.origin    // 访问不了
+Grid.origin     // 可以访问
+```
+
+### readonly
+
+你可以使用 `readonly`关键字将属性设置为只读的。 只读属性必须在声明时或构造函数里被初始化。
+
+```typescript
+class Octopus {
+    readonly name: string;
+    readonly numberOfLegs: number = 8;
+    constructor (theName: string) {
+        this.name = theName;
+    }
+}
+let dad = new Octopus("Man with the 8 strong legs");
+dad.name = "Man with the 3-piece suit"; // 错误! name 是只读的.
+```
+
+其实我们可以在构造函数中使用 `readonly` ，这个叫做 **参数属性**
+
+```typescript
+class Octopus {
+    readonly numberOfLegs: number = 8;
+    constructor(readonly name: string) {
+    }
+}
+```
+
+最好还是不要使用 **参数属性**，使用第一种方法比较好(清晰明了)
+
+### 存取器
+
+其实就是 ES5中的 **getters/setters** 
+
+```typescript
+class Employee {
+    private _fullName: string;
+
+    get fullName(): string {
+        return this._fullName;
+    }
+
+    set fullName(newName: string) {
+        this._fullName = newName;
+    }
+}
+
+let employee = new Employee();
+employee.fullName = "Bob Smith";
+if (employee.fullName) {
+    console.log(employee.fullName);
+}
+```
+
+> 注意 typescript 默认输出 ES3 版本的代码，**getters/setters** 是 ES5 的语法，如果想要使用就必须把输出带包调整到 ES5
+
+### 抽象类
+
+抽象类做为其它派生类的基类使用。 它们一般不会直接被实例化。 不同于接口，抽象类可以包含成员的实现细节。 `abstract`关键字是用于定义抽象类和在抽象类内部定义抽象方法。
+
+```typescript
+abstract class Department {
+    name:string
+    constructor(name: string) {
+        this.name = name
+    }
+    printName(): void {
+        console.log('Department name: ' + this.name);
+    }
+
+    abstract printMeeting(): void; // 必须在派生类中实现
+}
+
+class AccountingDepartment extends Department {
+
+    constructor() {
+        super('Accounting and Auditing'); // 在派生类的构造函数中必须调用 super()
+    }
+
+    printMeeting(): void {
+        console.log('The Accounting Department meets each Monday at 10am.');
+    }
+
+    generateReports(): void {
+        console.log('Generating accounting reports...');
+    }
+}
+
+let department: Department; // 允许创建一个对抽象类型的引用
+department = new Department(); // 错误: 不能创建一个抽象类的实例
+department = new AccountingDepartment(); // 允许对一个抽象子类进行实例化和赋值
+department.printName();
+department.printMeeting();
+department.generateReports(); // 错误: 方法在声明的抽象类中不存在
+```
+
+## 函数
+
+其实前面我也提到过一些函数，我认为这个没什么好说的，如果你还不了解，可以看一下：<https://www.tslang.cn/docs/handbook/functions.html>
+
+值得说一下的是 **重载**，其实这也没什么好说的，这个是 JS 函数自代的特性，下面是 JS 处理不同参数的重载
+
+```typescript
+let suits = ["hearts", "spades", "clubs", "diamonds"];
+
+function pickCard(x): any {
+    // Check to see if we're working with an object/array
+    // if so, they gave us the deck and we'll pick the card
+    if (typeof x == "object") {
+        let pickedCard = Math.floor(Math.random() * x.length);
+        return pickedCard;
+    }
+    // Otherwise just let them pick the card
+    else if (typeof x == "number") {
+        let pickedSuit = Math.floor(x / 13);
+        return { suit: suits[pickedSuit], card: x % 13 };
+    }
+}
+
+let myDeck = [{ suit: "diamonds", card: 2 }, { suit: "spades", card: 10 }, { suit: "hearts", card: 4 }];
+let pickedCard1 = myDeck[pickCard(myDeck)];
+alert("card: " + pickedCard1.card + " of " + pickedCard1.suit);
+
+let pickedCard2 = pickCard(15);
+alert("card: " + pickedCard2.card + " of " + pickedCard2.suit);
+```
+
+TS 的重载(java，c#类似的重载)
+
+```typescript
+let suits = ["hearts", "spades", "clubs", "diamonds"];
+
+function pickCard(x: {suit: string; card: number; }[]): number;
+function pickCard(x: number): {suit: string; card: number; };
+function pickCard(x): any {
+    // Check to see if we're working with an object/array
+    // if so, they gave us the deck and we'll pick the card
+    if (typeof x == "object") {
+        let pickedCard = Math.floor(Math.random() * x.length);
+        return pickedCard;
+    }
+    // Otherwise just let them pick the card
+    else if (typeof x == "number") {
+        let pickedSuit = Math.floor(x / 13);
+        return { suit: suits[pickedSuit], card: x % 13 };
+    }
+}
+
+let myDeck = [{ suit: "diamonds", card: 2 }, { suit: "spades", card: 10 }, { suit: "hearts", card: 4 }];
+let pickedCard1 = myDeck[pickCard(myDeck)];
+alert("card: " + pickedCard1.card + " of " + pickedCard1.suit);
+
+let pickedCard2 = pickCard(15);
+alert("card: " + pickedCard2.card + " of " + pickedCard2.suit);
+```
+
+## 泛型
+
+在像C#和Java这样的语言中，可以使用`泛型`来创建可重用的组件，一个组件可以支持多种类型的数据。 这样用户就可以根据自己的数据类型来使用组件。
+
+下面我们实现一个例子，你传入什么类型的数据，就返回什么类型的数据
+
+不用泛型的话，这个函数可能是下面这样：
+
+```ts
+function identity(arg: number): number {
+    return arg;
+}
+```
+
+或者，我们使用`any`类型来定义函数：
+
+```ts
+function identity(arg: any): any {
+    return arg;
+}
+```
+
+使用`any`类型会导致这个函数可以接收任何类型的`arg`参数，这样就丢失了一些信息：传入的类型与返回的类型应该是相同的。如果我们传入一个数字，我们只知道任何类型的值都有可能被返回。下面的函数就会返回字符串，不符合我们的要求。
+
+```typescript
+function identity(arg: any): any {
+    return arg + 'sd';
+}
+```
+
+因此，我们需要一种方法使返回值的类型与传入参数的类型是相同的。 这里，我们使用了 *类型变量*，它是一种特殊的变量，只用于表示类型而不是值。下面我们定义了一个**泛型函数**，可以根据我们传入的类型来返回数据
+
+```ts
+function identity<T>(arg: T): T {
+    return arg;
+}
+let output = identity<string>('hello');	//第一种
+let output = identity('hello');			//第二种 (推荐)
+// 其实第一种和第二种方法一样，第二种只不过是利用了类型推断
+console.log(output);
+```
+
+**泛型变量**
+
+使用泛型创建像`identity`这样的泛型函数时，编译器要求你在函数体必须正确的使用这个通用的类型。 换句话说，你必须把这些参数当做是任意或所有类型。
+
+看下之前`identity`例子：
+
+```ts
+function identity<T>(arg: T): T {
+    return arg;
+}
+```
+
+但是如果我们想同时打印出`arg`的长度。 我们很可能会这样做：
+
+```ts
+function loggingIdentity<T>(arg: T): T {
+    console.log(arg.length);  // Error: T doesn't have .length
+    return arg;
+}
+```
+
+如果这么做，编译器会报错说我们使用了`arg`的`.length`属性，但是没有地方指明`arg`具有这个属性。 记住，这些类型变量代表的是任意类型，所以使用这个函数的人可能传入的是个数字，而数字是没有 `.length`属性的。
+
+现在假设我们想操作`T`类型的数组而不直接是`T`。由于我们操作的是数组，所以`.length`属性是应该存在的。 我们可以像创建其它数组一样创建这个数组：
+
+```ts
+function loggingIdentity<T>(arg: T[]): T[] {
+    console.log(arg.length);  // Array has a .length, so no more error
+    return arg;
+}
+```
+
+你可以这样理解`loggingIdentity`的类型：泛型函数`loggingIdentity`，接收类型参数`T`和参数`arg`，它是个元素类型是`T`的数组，并返回元素类型是`T`的数组。 如果我们传入数字数组，将返回一个数字数组，因为此时 `T`的的类型为`number`。 这可以让我们把泛型变量T当做类型的一部分使用，而不是整个类型，增加了灵活性。
+
+我们也可以这样实现上面的例子：
+
+```ts
+function loggingIdentity<T>(arg: Array<T>): Array<T> {
+    console.log(arg.length);  // Array has a .length, so no more error
+    return arg;
+}
+```
+
+**泛型类型**
+
+```ts
+function identity<T>(arg: T): T {
+    return arg;
+}
+
+let myIdentity: <T>(arg: T) => T = identity;
+```
+
+我们也可以使用不同的泛型参数名，只要在数量上和使用方式上能对应上就可以。
+
+```ts
+function identity<T>(arg: T): T {
+    return arg;
+}
+
+let myIdentity: <U>(arg: U) => U = identity;
+```
+
+我们还可以使用带有调用签名的对象字面量来定义泛型函数：
+
+```ts
+function identity<T>(arg: T): T {
+    return arg;
+}
+
+let myIdentity: {<T>(arg: T): T} = identity;
+```
+
+这引导我们去写第一个泛型接口了。 我们把上面例子里的对象字面量拿出来做为一个接口：
+
+```ts
+interface GenericIdentityFn {
+    <T>(arg: T): T;
+}
+
+function identity<T>(arg: T): T {
+    return arg;
+}
+
+let myIdentity: GenericIdentityFn = identity;
+```
+
+一个相似的例子，我们可能想把泛型参数当作整个接口的一个参数。 这样我们就能清楚的知道使用的具体是哪个泛型类型（比如： `Dictionary<string>而不只是Dictionary`）。 这样接口里的其它成员也能知道这个参数的类型了。
+
+```ts
+interface GenericIdentityFn<T> {
+    (arg: T): T;
+}
+
+function identity<T>(arg: T): T {
+    return arg;
+}
+
+let myIdentity: GenericIdentityFn<number> = identity;
+// 推荐这种方式
+```
+
+注意，我们的示例做了少许改动。 不再描述泛型函数，而是把非泛型函数签名作为泛型类型一部分。 当我们使用 `GenericIdentityFn`的时候，还得传入一个类型参数来指定泛型类型（这里是：`number`），锁定了之后代码里使用的类型。 对于描述哪部分类型属于泛型部分来说，理解何时把参数放在调用签名里和何时放在接口上是很有帮助的。
+
+除了泛型接口，我们还可以创建泛型类。 注意，无法创建泛型枚举和泛型命名空间。
+
+**泛型类**
+
+泛型类看上去与泛型接口差不多。 泛型类使用（ `<>`）括起泛型类型，跟在类名后面。
+
+```ts
+class GenericNumber<T> {
+    zeroValue: T;
+    add: (x: T, y: T) => T;
+}
+
+let myGenericNumber = new GenericNumber<number>();
+myGenericNumber.zeroValue = 0;
+myGenericNumber.add = function(x, y) { return x + y; };
+```
+
+`GenericNumber`类的使用是十分直观的，并且你可能已经注意到了，没有什么去限制它只能使用`number`类型。 也可以使用字符串或其它更复杂的类型。
+
+```ts
+let stringNumeric = new GenericNumber<string>();
+stringNumeric.zeroValue = "";
+stringNumeric.add = function(x, y) { return x + y; };
+
+console.log(stringNumeric.add(stringNumeric.zeroValue, "test"));
+```
+
+与接口一样，直接把泛型类型放在类后面，可以帮助我们确认类的所有属性都在使用相同的类型。
+
+我们在类那节说过，类有两部分：静态部分和实例部分。 泛型类指的是实例部分的类型，所以类的静态属性不能使用这个泛型类型。
+
+**泛型约束**
+
+你应该会记得之前的一个例子，我们有时候想操作某类型的一组值，并且我们知道这组值具有什么样的属性。 在 `loggingIdentity`例子中，我们想访问`arg`的`length`属性，但是编译器并不能证明每种类型都有`length`属性，所以就报错了。
+
+```ts
+function loggingIdentity<T>(arg: T): T {
+    console.log(arg.length);  // Error: T doesn't have .length
+    return arg;
+}
+```
+
+相比于操作any所有类型，我们想要限制函数去处理任意带有`.length`属性的所有类型。 只要传入的类型有这个属性，我们就允许，就是说至少包含这一属性。 为此，我们需要列出对于T的约束要求。
+
+为此，我们定义一个接口来描述约束条件。 创建一个包含 `.length`属性的接口，使用这个接口和`extends`关键字来实现约束：
+
+```ts
+interface Lengthwise {
+    length: number;
+}
+
+function loggingIdentity<T extends Lengthwise>(arg: T): T {
+    console.log(arg.length);  // Now we know it has a .length property, so no more error
+    return arg;
+}
+```
+
+现在这个泛型函数被定义了约束，因此它不再是适用于任意类型：
+
+```ts
+loggingIdentity(3);  // Error, number doesn't have a .length property
+```
+
+我们需要传入符合约束类型的值，必须包含必须的属性：
+
+```ts
+loggingIdentity({length: 10, value: 3});
+```
+
+**在泛型约束中使用类型参数**
+
+你可以声明一个类型参数，且它被另一个类型参数所约束。 比如，现在我们想要用属性名从对象里获取这个属性。 并且我们想要确保这个属性存在于对象 `obj`上，因此我们需要在这两个类型之间使用约束。
+
+```ts
+function getProperty<T,K extends keyof T>(obj: T,key: K){
+    return obj[key];
+}
+
+let x = {one:1,two:2,three:3};
+
+console.log(getProperty(x,'one'));
+console.log(getProperty(x,'four'));	//  Argument of type '"four"' is not assignable to parameter of type '"one" | "two" | "three"'
+```
+
+说明一下 `keyof` 是返回对象的所有索引构成的联合类型
+
+## 类型推断
+
+TypeScript里，在有些没有明确指出类型的地方，类型推论会帮助提供类型。如下面的例子
+
+```ts
+let x = 3;
+```
+
+变量`x`的类型被推断为数字。 这种推断发生在初始化变量和成员，设置默认参数值和决定函数返回值时。
+
+大多数情况下，类型推论是直截了当地。 后面的小节，我们会浏览类型推论时的细微差别。
+
+**最佳通用类型**
+
+当需要从几个表达式中推断类型时候，会使用这些表达式的类型来推断出一个最合适的通用类型。例如，
+
+```ts
+let x = [0, 1, null];
+```
+
+为了推断`x`的类型，我们必须考虑所有元素的类型。 这里有两种选择： `number`和`null`。 计算通用类型算法会考虑所有的候选类型，并给出一个兼容所有候选类型的类型。
+
+由于最终的通用类型取自候选类型，有些时候候选类型共享相同的通用类型，但是却没有一个类型能做为所有候选类型的类型。例如：
+
+```ts
+let zoo = [new Rhino(), new Elephant(), new Snake()];
+```
+
+这里，我们想让zoo被推断为`Animal[]`类型，但是这个数组里没有对象是`Animal`类型的，因此不能推断出这个结果。 为了更正，当候选类型不能使用的时候我们需要明确的指出类型：
+
+```ts
+let zoo: Animal[] = [new Rhino(), new Elephant(), new Snake()];
+```
+
+如果没有找到最佳通用类型的话，类型推断的结果为联合数组类型，`(Rhino | Elephant | Snake)[]`。
+
+**上下文类型**
+
+TypeScript类型推论也可能按照相反的方向进行。 这被叫做“**按上下文归类**”。按上下文归类会发生在表达式的类型与所处的位置相关时。比如：
+
+```ts
+window.onmousedown = function(mouseEvent) {
+    console.log(mouseEvent.button);  //<- Error
+};
+```
+
+这个例子会得到一个类型错误，TypeScript类型检查器使用`Window.onmousedown`函数的类型来推断右边函数表达式的类型。 因此，就能推断出 `mouseEvent`参数的类型了。 如果函数表达式不是在上下文类型的位置， `mouseEvent`参数的类型需要指定为`any`，这样也不会报错了。
+
+如果上下文类型表达式包含了明确的类型信息，上下文的类型被忽略。 重写上面的例子：
+
+```ts
+window.onmousedown = function(mouseEvent: any) {
+    console.log(mouseEvent.button);  //<- Now, no error is given
+};
+```
+
+这个函数表达式有明确的参数类型注解，上下文类型被忽略。 这样的话就不报错了，因为这里不会使用到上下文类型。
+
+上下文归类会在很多情况下使用到。 通常包含函数的参数，赋值表达式的右边，类型断言，对象成员和数组字面量和返回值语句。 上下文类型也会做为最佳通用类型的候选类型。比如：
+
+```ts
+function createZoo(): Animal[] {
+    return [new Rhino(), new Elephant(), new Snake()];
+}
+```
+
+这个例子里，最佳通用类型有4个候选者：`Animal`，`Rhino`，`Elephant`和`Snake`。 当然， `Animal`会被做为最佳通用类型。
+
+## 高级类型
+
+**交叉类型**
+
+交叉类型是将多个类型合并为一个类型。 这让我们可以把现有的多种类型叠加到一起成为一种类型，它包含了所需的所有类型的特性。 例如， `Person & Serializable & Loggable`同时是 `Person` *和* `Serializable` *和* `Loggable`。 就是说这个类型的对象同时拥有了这三种类型的成员。
+
+```typescript
+function extend<T, U>(first: T, second: U): T & U {
+    let result = <T & U>{};	// {} as T & U
+    for (let id in first) {
+        result[id] = first[id] as any;
+    }
+    for (let id in second) {
+        if (!result.hasOwnProperty(id)) {
+            result[id] = second[id] as any;
+        }
+    }
+    return result;
+}	// 定义
+
+class Person {
+    constructor(public name: string) { }
+}
+interface Loggable {
+    log(): void;
+}
+class ConsoleLogger implements Loggable {
+    log() {
+        // ...
+    }
+}
+var jim = extend(new Person("Jim"), new ConsoleLogger());	// 使用
+var n = jim.name;
+jim.log();
+```
+
+**联合类型**
+
+ 偶尔你会遇到这种情况，一个代码库希望传入 `number`或 `string`类型的参数，你就可以使用联合类型
+
+```typescript
+function padLeft(value: string, padding: string | number) {
+    // ...
+}
+```
+
+padding 就既可以是字符串或数字类型
+
+如果是你自己定义的类，接口，泛型也是可以的
+
+```typescript
+interface Bird {
+    fly();
+    layEggs();
+}
+
+interface Fish {
+    swim();
+    layEggs();
+}
+
+function getSmallPet(): Fish | Bird {
+    // ...
+}
+
+let pet = getSmallPet();
+pet.layEggs(); // okay
+pet.swim();    // errors
+```
+
+**类型保护和区分类型**
+
+还是上一个例子，但当我们想确切地了解是否为 `Fish`时怎么办？ JavaScript里常用来区分2个可能值的方法是检查成员是否存在。
+
+> 当然我们可以通过 if 的方式确认，类型断言 也是可以的。
+
+这里介绍**类型保护**，下面一个例子，判断到底是否是`Fish` 接口?
+
+```typescript
+function isFish(pet: Fish | Bird): pet is Fish {
+    return (<Fish>pet).swim !== undefined;
+}
+```
+
+**类型保护** 通过谓词为 `parameterName is Type`这种形式， `parameterName`必须是来自于当前函数签名里的一个参数名。
+
+还有一种 `typeof` 提供的类型保护
+
+```typescript
+function isNumber(x: any): x is number {
+    return typeof x === "number";
+}
+
+function isString(x: any): x is string {
+    return typeof x === "string";
+}
+
+function padLeft(value: string, padding: string | number) {
+    if (isNumber(padding)) {
+        return Array(padding + 1).join(" ") + value;
+    }
+    if (isString(padding)) {
+        return padding + value;
+    }
+    throw new Error(`Expected string or number, got '${padding}'.`);
+}
+```
+
+现在我们不必将 `typeof x === "number"`抽象成一个函数，因为TypeScript可以将它识别为一个类型保护。 也就是说我们可以直接在代码里检查类型了。
+
+我们还可以使用`instanceof`来进行类型保护
+
+```typescript
+interface Padder {
+    getPaddingString(): string
+}
+
+class SpaceRepeatingPadder implements Padder {
+    constructor(private numSpaces: number) { }
+    getPaddingString() {
+        return Array(this.numSpaces + 1).join(" ");
+    }
+}
+
+class StringPadder implements Padder {
+    constructor(private value: string) { }
+    getPaddingString() {
+        return this.value;
+    }
+}
+
+function getRandomPadder() {
+    return Math.random() < 0.5 ?
+        new SpaceRepeatingPadder(4) :
+        new StringPadder("  ");
+}
+
+// 类型为SpaceRepeatingPadder | StringPadder
+let padder: Padder = getRandomPadder();
+
+if (padder instanceof SpaceRepeatingPadder) {
+    padder; // 类型细化为'SpaceRepeatingPadder'
+}
+if (padder instanceof StringPadder) {
+    padder; // 类型细化为'StringPadder'
+}
+```
+
+`instanceof`的右侧要求是一个构造函数，TypeScript将细化为：
+
+1. 此构造函数的 `prototype`属性的类型，如果它的类型不为 `any`的话
+2. 构造签名所返回的类型的联合
+
+以此顺序。
+
+**手动取消类型断言**
+
+如果编译器不能够去除 `null`或 `undefined`，你可以使用类型断言手动去除。 语法是添加 `!`后缀： `identifier!`从 `identifier`的类型里去除了 `null`和 `undefined`：
+
+```ts
+function broken(name: string | null): string {
+  function postfix(epithet: string) {
+    return name.charAt(0) + '.  the ' + epithet; // error, 'name' is possibly null
+  }
+  name = name || "Bob";
+  return postfix("great");
+}
+
+function fixed(name: string | null): string {
+  function postfix(epithet: string) {
+    return name!.charAt(0) + '.  the ' + epithet; // ok
+  }
+  name = name || "Bob";
+  return postfix("great");
+}
+```
+
+**字符串字面量**
+
+字符串字面量类型允许你指定字符串必须的固定值。 在实际应用中，字符串字面量类型可以与联合类型，类型保护和类型别名很好的配合。 通过结合使用这些特性，你可以实现类似枚举类型的字符串。
+
+```ts
+type Easing = "ease-in" | "ease-out" | "ease-in-out";
+class UIElement {
+    animate(dx: number, dy: number, easing: Easing) {
+        if (easing === "ease-in") {
+            // ...
+        }
+        else if (easing === "ease-out") {
+        }
+        else if (easing === "ease-in-out") {
+        }
+        else {
+            // error! should not pass null or undefined.
+        }
+    }
+}
+
+let button = new UIElement();
+button.animate(0, 0, "ease-in");
+button.animate(0, 0, "uneasy"); // error: "uneasy" is not allowed here
+```
+
+通过使用 `type` 来实现
+
+你只能从三种允许的字符中选择其一来做为参数传递，传入其它值则会产生错误。
+
+当然也可以使用**数字字面量**
+
+其实还有其他的一些特性，我只总结了一些常用的东西，剩下的就需要去看官方的文档了。

@@ -1,0 +1,202 @@
+这一章是最后一章，主要是进行单元测试。
+
+## jest
+
+### 什么是 jest
+
+jest 是 Facebook 弄出来的一个 JavaScript 的测试框架，这个是很好用的。
+
+我把的它的官网地址放在了这里：<https://jestjs.io/zh-Hans/>
+
+### 安装 jest
+
+由于我们的项目是使用 `typescript-library-starter` 初始化的，已经内置了 Jest 的安装，但是安装的版本却不是最新的，我们可以对 `package.json` 中的相关依赖版本做修改，重新安装来进行更新。
+
+```json
+{
+  "@types/jest": "^24.0.13",
+  "jest": "^24.8.0",
+  "jest-config": "^24.8.0",
+  "ts-jest": "^24.0.2",
+  "typescript": "^3.4.5"
+}
+```
+
+### jest 配置
+
+在 `package.json` 文件中有 `jest` 字段，对应 Jest 配置：
+
+```typescript
+"jest": {
+  "transform": {
+    ".(ts|tsx)": "ts-jest"
+  },
+  "testEnvironment": "jsdom",
+  "testRegex": "/test/.*\\.(test|spec)\\.(ts)$",
+  "moduleFileExtensions": [
+    "ts",
+    "tsx",
+    "js"
+  ],
+  "coverageThreshold": {
+    "global": {
+      "branches": 90,
+      "functions": 95,
+      "lines": 95,
+      "statements": 95
+    }
+  },
+  "collectCoverageFrom": [
+    "src/*.{js,ts}",
+    "src/**/*.{js,ts}"
+  ],
+  "setupFilesAfterEnv": [
+    "<rootDir>/test/boot.ts"
+  ]
+},
+```
+
+这些配置可以在官网查看其文档
+
+### 使用
+
+在进行配置前我们要写好单元测试，在根目录下 `test/helpers/util.ts` 中写一些单元测试
+
+```typescript
+import {
+    isDate,
+    isPlainObject,
+    isFormData,
+    isURLSearchParams,
+    extend,
+    deepMerge
+  } from '../../src/helpers/util'
+  
+  describe('helpers:util', () => {
+    describe('isXX', () => {
+      test('should validate Date', () => {
+        expect(isDate(new Date())).toBeTruthy()
+        expect(isDate(Date.now())).toBeFalsy()
+      })
+  
+      test('should validate PlainObject', () => {
+        expect(isPlainObject({})).toBeTruthy()
+        expect(isPlainObject(new Date())).toBeFalsy()
+      })
+  
+      test('should validate FormData', () => {
+          let fromdata = new FormData();
+
+        expect(isFormData(fromdata)).toBeTruthy()
+        expect(isFormData({})).toBeFalsy()
+      })
+  
+      test('should validate URLSearchParams', () => {
+        expect(isURLSearchParams(new URLSearchParams())).toBeTruthy()
+        expect(isURLSearchParams('foo=1&bar=2')).toBeFalsy()
+      })
+    })
+  
+    describe('extend', () => {
+      test('should be mutable', () => {
+        const a = Object.create(null)
+        const b = { foo: 123 }
+  
+        extend(a, b)
+  
+        expect(a.foo).toBe(123)
+      })
+  
+      test('should extend properties', function() {
+        const a = { foo: 123, bar: 456 }
+        const b = { bar: 789 }
+        const c = extend(a, b)
+  
+        expect(c.foo).toBe(123)
+        expect(c.bar).toBe(789)
+      })
+    })
+  
+    describe('deepMerge', () => {
+      test('should be immutable', () => {
+        const a = Object.create(null)
+        const b: any = { foo: 123 }
+        const c: any = { bar: 456 }
+  
+        deepMerge(a, b, c)
+  
+        expect(typeof a.foo).toBe('undefined')
+        expect(typeof a.bar).toBe('undefined')
+        expect(typeof b.bar).toBe('undefined')
+        expect(typeof c.foo).toBe('undefined')
+      })
+  
+      test('should deepMerge properties', () => {
+        const a = { foo: 123 }
+        const b = { bar: 456 }
+        const c = { foo: 789 }
+        const d = deepMerge(a, b, c)
+  
+        expect(d.foo).toBe(789)
+        expect(d.bar).toBe(456)
+      })
+  
+      test('should deepMerge recursively', function() {
+        const a = { foo: { bar: 123 } }
+        const b = { foo: { baz: 456 }, bar: { qux: 789 } }
+        const c = deepMerge(a, b)
+  
+        expect(c).toEqual({
+          foo: {
+            bar: 123,
+            baz: 456
+          },
+          bar: {
+            qux: 789
+          }
+        })
+      })
+  
+      test('should remove all references from nested objects', () => {
+        const a = { foo: { bar: 123 } }
+        const b = {}
+        const c = deepMerge(a, b)
+  
+        expect(c).toEqual({
+          foo: {
+            bar: 123
+          }
+        })
+  
+        expect(c.foo).not.toBe(a.foo)
+      })
+  
+      test('should handle null and undefined arguments', () => {
+        expect(deepMerge(undefined, undefined)).toEqual({})
+        expect(deepMerge(undefined, { foo: 123 })).toEqual({ foo: 123 })
+        expect(deepMerge({ foo: 123 }, undefined)).toEqual({ foo: 123 })
+  
+        expect(deepMerge(null, null)).toEqual({})
+        expect(deepMerge(null, { foo: 123 })).toEqual({ foo: 123 })
+        expect(deepMerge({ foo: 123 }, null)).toEqual({ foo: 123 })
+      })
+    })
+  })
+  
+```
+
+其中的一些 `describe` 、`test` 都是 jest 提供的，这需要去看相关的文档
+
+运行：
+
+```shell
+npm test
+```
+
+就会在命令行返回一些东西，用来检测到底是否正确，会有一些说明文档
+
+
+
+剩下的打包，发布我不准备写了 ，完结了，就到这里吧！
+
+可以来 **GitHub** 上查看我的源码，网址是：<https://github.com/zhaosirlaile/ts-axios>

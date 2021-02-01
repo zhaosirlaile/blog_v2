@@ -1,0 +1,947 @@
+## 简介
+
+React 是一个用于构建用户界面的 JAVASCRIPT 库。
+
+React主要用于构建UI，很多人认为 React 是 MVC 中的 V（视图）。
+
+React 起源于 Facebook 的内部项目，用来架设 Instagram 的网站，并于 2013 年 5 月开源。
+
+React 拥有较高的性能，代码逻辑非常简单，越来越多的人已开始关注和使用它。
+
+官网：https://www.reactjscn.com/
+
+## 下载
+
+首先你要配置好 `webpack` ，这里就不再多说了，可以看我以前写的 <http://www.zhaosirlaile.com/#/article/00020> 
+
+1. 下载 `react-dom` 和 `react` 这两个包
+
+   ```shell
+   npm i react react-dom -S
+   ```
+
+2. 在 `index.html` 页面中创建一个容器
+
+   ```html
+   <!-- 使用 React 创建的虚拟DOM元素，都会被渲染到这个指定的容器中 -->
+   <div id="app"></div>
+   ```
+
+3. 导入包
+
+   ```jsx
+   import React from 'react'
+   import ReactDOM from 'react-dom'
+   ```
+
+4. 使用`ReactDOM.render` 进行渲染：
+
+   ```jsx
+   ReactDOM.render(<h1></h1>, document.getElementById('app'))
+   ```
+
+## JSX
+
+>什么是JSX语法：就是符合 xml 规范的 JS 语法；（语法格式相对来说，要比HTML严谨很多）
+
+```jsx
+let element = <h1>Hello, world!</h1>;
+```
+
+官方解释：它被称为 JSX， 一种 JavaScript 的语法扩展。 我们推荐在 React 中使用 JSX 来描述用户界面。JSX 乍看起来可能比较像是模版语言，但事实上它完全是在 JavaScript 内部实现的
+
+简单来说：就是使用 `jsx` 更方便的在js文件中书写html元素
+
+`注意` :  jsx 语法的本质：并不是直接把 jsx 渲染到页面上，而是内部先转换成了 createElement 形式，再渲染的；
+
+### 在 jsx 中写入 js 表达式 （{}）
+
+在 jsx 语法中，要把 JS代码写到 `{ }` 中
+
++ 渲染数字
++ 渲染字符串
++ 渲染布尔值
++ 为属性绑定值
++ 渲染jsx元素
++ 渲染jsx元素数组
++ 将普通字符串数组，转为jsx数组并渲染到页面上
+  + 一种是在外面写好了在使用 `{}` ，插入到对应的位置
+  + 另一种就是在jsx中对应的位置使用数组的map函数也是可以的（推荐）
+
+### jsx 中注释
+
+一种：
+
+```jsx
+const app = <div>
+{
+    // 这是注释
+    // 这是注释
+}
+</div>
+```
+
+另一种：
+
+```jsx
+const app = <div>
+    {
+    /* 这是注释
+    这是注释 */
+    }
+</div>
+```
+
+### jsx 中的元素添加class类名，label添加for
+
++ 需要使用`className` 来替代 `class`
++ `htmlFor`替换label元素的`for`属性
+
+### jsx 创建 DOM 的时候，注意
+
++ 在JSX创建DOM的时候，所有的节点，必须有唯一的根元素进行包裹；
++ 在 jsx 语法中，标签必须 成对出现，如果是单标签，则必须自闭和！
+
+>当编译引擎，在编译JSX代码的时候，如果遇到了`<`那么就把它当作 HTML代码去编译，如果遇到了 `{}` 就把 花括号内部的代码当作 普通JS代码去编译；
+
+## 组件
+
+### 第一种
+
+第一种方式其实就是一个构造函数,
+
+>如果在一个组件中return一个null，则表示此组件是空的，什么都不会渲染；或者return一个合法的JSX创建的虚拟DOM。如果函数中没有return就会报错
+
+#### 创建组件
+
+```jsx
+function Pry () {
+    return <p>Hello Wolrd 组件</p>
+}
+```
+
+#### 使用组件
+
+```jsx
+function Pry () {
+    return <p>Hello Wolrd 组件</p>
+}
+
+const myh1 = <div>
+    <Pry></Pry>
+</div>
+```
+
+`注意：不管是在创建组件，还是在使用组件，组件名称的第一个首字母必须大写`
+
+#### 传参（props）
+
+```jsx
+// 使用组件并 为组件传递 props 数据
+function Pry (props) {
+    return <p>我的名字是：{props.name}，我的性别是：{props.sex}</p>
+}
+
+const dom = <div>
+    <Pry name='小明' sex='男' ></Pry>
+</div>
+// 注意：不论是 Vue 还是 React，组件中的 props 永远都是只读的；不能被重新赋值；
+ReactDOM.render(dom,document.getElementById('app'));
+```
+
+#### 使用 .jsx 文件创建组件
+
+这是文件目录：
+
+![1566454661376](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1566454661376.png)
+
+我们在 `index.js` 文件中导入 `Hello.jsx` 文件
+
+以下是 index.js 的代码：
+
+```jsx
+import React from 'react';
+import ReactDOM from 'react-dom';
+// 组件
+import Hello from './componnets/Hello';
+
+let dog = {
+    name:'小航',
+    sex : "madom",    
+}
+const myh1 = <div>
+    <Hello {...dog} ></Hello>
+</div>
+ReactDOM.render(myh1,document.getElementById('app'));
+```
+
+以下是 Hello.js 的代码:
+
+```js
+import React from 'react';			// 必须导入，否则报错
+export default function Hello (props) {
+    return <p>我的名字是：{props.name}，我的性别是：{props.sex}</p>
+}
+```
+
+### 第二种
+
+使用 es6 的 `class关键字` 创建对象，其实 `class关键字` 仅仅只是 new关键字的语法糖而已，使用 new 和 class 创建的效果是一样的，只是 class 关键字创建起对象更方便，看着更舒服，但是创建组件就有区别了。
+
+#### 语法
+
+```js
+class Animal {
+    constructor(name,sex,age) {		//构造函数
+        this.name = name;
+        this.age  = age;
+        this.sex  = sex;
+    }
+    static info = 'eee'; // 静态变量
+    static active () {	 // 静态方法
+        console.log('动起来了')
+    }
+    say(){				 // 实例方法
+        console.log('呜呜呜~~~');
+    }
+}
+```
+
+注意：
+
+- 在 class 的 `{ }` 区间中，只能写构造器、静态方法和静态属性、实例方法
+
+#### 继承
+
+```js
+class Person {
+    constructor(name,age,languge){
+        this.name = name
+        this.age = age
+        this.languge = languge;
+    }
+
+}
+class Chinese extends Person {		// 子类继承父类使用 extends
+    								// 自定义构造器时必须使用supter()
+									// 省略构造器按照继承的父类的构造器惊喜构造
+    constructor(name,age,languge,IDNumber){
+        super(name,age,languge);
+        this.IDNumber = IDNumber;
+    }
+    say(){
+        console.log('吃饭没？')
+    }
+}
+class American extends Person{
+    constructor(name,age,languge){
+        super(name,age,languge);
+    }
+    say(){
+        console.log('hello');
+    }
+}
+
+
+const c1 = new Chinese('小明',18,'汉语','510180454545744');
+console.log(c1);
+const a1 = new American('Tom',22,'English');
+console.log(a1);
+
+```
+
+#### 基于 class 关键字创建组件
+
+**基本语法**
+
+```jsx
+// 如果要使用 class 定义组件，必须 让自己的组件，继承自 React.Component
+class 组件名称 extends React.Component {
+    // 在 组件内部，必须有 render 函数,作用：渲染当前组件对应的 虚拟DOM结构
+    render(){
+        // render 函数中，必须 返回合法的 JSX 虚拟DOM结构
+        return <div>这是 class 创建的组件</div>
+    }
+}
+```
+
+注意：
+
+- 在 class 关键字创建的组件中，如果想使用外界传递过来的 props 参数，不需要接收，直接通过 `this.props.xxx` 即可
+- `props` 是只读的，不能进行赋值
+
+**私有数据**
+
+```jsx
+class Hello extends React.Component{
+    constructor(){
+        super();	// 必须加上super(),才能使用this关键字，否则报错
+        this.state = {} // 相当于 Vue 中的 data(){ return {} }       
+    }
+    render(h) {
+        return <h1>你好！{this.props.name},你的年龄{this.props.sex}</h1>
+    }
+}
+```
+
+`注意`：this.state 是可读可写的
+
+### 两种创建方式的对比
+
+|              | 构造函数   | class关键字 |
+| ------------ | ---------- | ----------- |
+| props        | 有         | 有          |
+| 私有数据     | 没有       | 有          |
+| 生命周期函数 | 没有       | 有          |
+
+因此：
+
+1. 用**构造函数**创建出来的组件：叫做“无状态组件”【无状态组件今后用的不多】
+2. 用**class关键字**创建出来的组件：叫做“有状态组件”【今后用的最多】
+3. 什么情况下使用有状态组件？什么情况下使用无状态组件？
+   - 如果一个组件需要有自己的私有数据，则推荐使用：class创建的有状态组件；
+   - 如果一个组件不需要有私有的数据，则推荐使用：无状态组件；
+   - React官方说：无状态组件，由于没有自己的state和生命周期函数，所以运行效率会比 有状态组件稍微高一些；
+
+> 有状态组件和无状态组件之间的**本质区别**就是：有无state属性、和 有无生命周期函数；
+4. 组件中的 `props` 和 `state/data` 之间的区别
+
+- props 中的数据都是外界传递过来的；
+- state/data 中的数据，都是组件私有的；（通过 Ajax 获取回来的数据，一般都是私有数据）；
+- props  中的数据都是只读的；不能重新赋值；
+- state/data 中的数据，都是可读可写的；
+
+## 如何使用 css
+
+`注意：webpack中默认是不能解析css的需要先配置`
+
+### 配置 css
+
+先安装 `style-loader`,`css-loader` 这两个包
+
+```shell
+npm i style-loader css-loader -D
+```
+
+打开 `webpack.config.js` 文件，在 module 对象中的rules数组加入一项
+
+```js
+{
+    test:/\.css/,
+    use: ['style-loader','css-loader'] //处理 css 文件
+}
+```
+`注意：我的 webpack 是 2.x.x`
+
+码为以下样子：
+
+```js
+module.exports = {
+    mode: 'development',
+    module: {
+        rules:[
+            {
+                test: /\.js|jsx$/,		// 处理 es6 的语法及jsx
+                use: 'babel-loader',
+                exclude: /node_modules/   // 一定要加这一句
+            },
+            {
+                test:/\.css/,
+                use: ['style-loader','css-loader'] //处理 css 文件
+            }
+        ]
+    },
+}
+```
+
+
+### 行内样式
+
+```jsx
+export default class Hello extends React.Component{
+    constructor(){
+        super();
+        this.state = {} 
+    }
+    render(h) {
+        return <div>
+            <p style={{color: 'red',fontWeight:'600px'}}>hello world</p>
+        </div>
+    }
+}
+```
+
+注意：
+
+- 在jsx中使用style属性的时候，不要向往常那样写`style="color:red"` 这样写是会报错的
+- 应该这样写`style={{color:'red',font-size:'15px'}}` 才对，那这两个括号什么意思呢？
+  - 第一个括号表示：这里要写js的代码
+  - 第二个括号表示：这里是个对象
+- jsx 中 style 是个对象
+- 如果style的样式规则中，属性值的单位是px，可以省略不写，直接写个数值
+
+相信大家想到了，既然 style 是个对象，那么我可以这样写
+
+```jsx
+const myStyle = {
+    style1: {
+        color: 'red',
+        fontWeight: 200,
+    },
+    style2: {
+        color: 'black',
+    }
+}
+export default class Hello extends React.Component{
+    constructor(){
+        super();
+        this.state = {} 
+    }
+    render(h) {
+        return <div>
+            <p style={myStyle.style1}>hello world</p>
+        </div>
+    }
+}
+```
+
+### 外部样式
+
+以下是我的文件路径截图：
+
+
+
+![1566737502215](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1566737502215.png)
+
+css的代码：
+
+```css
+.title {
+    font-size: 12px;
+    color: #f0f0f0;
+    background-color: #fff;
+}
+```
+
+jsx的代码：
+
+```jsx
+import React from 'react';
+import './CommentList.css';
+
+export default class Hello extends React.Component{
+    constructor(){
+        super();
+        this.state = {}       
+    }
+    render(h) {
+        return <div>
+            <p className='title'>hello world</p>
+        </div>
+    }
+}
+```
+
+这样的导入样式其实全局的：任何组件引用这个组件都可能造成样式覆盖，这样我就可以借助css的模块化（私有，像vue中的scoped）
+
+### 启用 css 模块化
+
+打开`webpack.config.js` 文件，在处理 css 那一项中改为`use: ['style-loader','css-loader?modules'] ` 也就是加了一个 `?modules` ，在重新启用 webpack，就生效了，不过...
+
+```jsx
+module.exports = {
+    mode: 'development',
+    module: {
+        rules:[
+            {
+                test: /\.js|jsx$/,
+                use: 'babel-loader',
+                exclude: /node_modules/   // 一定要加这一句
+            },
+            {
+                test:/\.css/,
+                use: ['style-loader','css-loader?modules'] //处理 css 文件
+            }
+        ]
+    },
+}
+```
+
+在我们的jsx文件中最好还是使用导入css文件就必须把`import './CommentList.css';`改为`import listSyle from './CommentList.css';` ，其中`listStyle` 是自己定义的，并且在jsx文件中把`listStyle`当成对象一样使用，打印 `listStyle`，返回的是一个对象
+
+![1566739630655](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1566739630655.png)
+
+```jsx
+export default class Hello extends React.Component{
+    constructor(){
+        super();
+        this.state = {}       
+    }
+    render(h) {
+        return <div>
+            <p className={listSyle.title}>hello world</p>
+        </div>
+    }
+}
+```
+
+webpack中的css-loader 启用了css的模块化，就是通过对象来使用这些样式
+
+`注意：css-loader只对类选择器和id选择器其中用，其它的选择器都会无效`
+
+## 生命周期
+
+### 什么是生命周期
+
+在组件创建、到加载到页面上运行、以及组件被销毁的过程中，总是伴随在某些个特定的事件，而这些事件统称为生命周期函数（生命周期钩子）。
+
+如下图所示：
+
+![img](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/timg.jpg)
+
+组件的生命周期分为三个阶段：
+
+- `组件创建`阶段：一个组件的一生只执行一次（就像母亲生一个孩子，对孩子而言只有一次生孩子的动作）
+  - `static defaultProps` ：该对象用来设置组件中的默认属性值，并且会在`state`之前被运行，一般用于这用于这种情况：父组件没有传值过来，这时候就需要这个值，怎么办呢？那就可以设置设个属性，给他一个默认值来初始化我们的数据。
+
+      ```jsx
+      import React from 'react';
+      
+      export default class Counter extends React.Component{
+          constructor(props) {
+              super(props);
+          }
+          static defaultProps = {
+              initData: 0
+          }
+          render(){
+              return <div>
+                  <h3>这是静态变量defaultProps的值：{this.props.initData}</h3>
+              </div>
+          }
+      }
+      ```
+
+    `static propTypes` 这个对象可以把父组件传过来的值进行数据类型检查，如果要为传递过来的数据惊喜类型检验，必须安装 React 提供的第三方包 `prop-types` ，其实这个包在 react `v15`及其之前就在react中，并没有被抽离出来，在 `v15` 这个版本之后，它就被 react 官方抽离为一个 `prop-types` 的一个包。
+
+    要想使用安装`prop-types`这个包：`npm i prop-types -s`
+
+    ```jsx
+    import React from 'react';
+    import ReactTypes from 'prop-types';
+    
+    export default class Counter extends React.Component{
+        constructor(props) {
+            super(props);
+        }
+        static propTypes = {
+            componentInitNumber: ReactTypes.number,
+        }
+        render(){
+            return <div>
+                <h3>当前数量是：{this.props.componentInitNumber}</h3>
+            </div>
+        }
+    }
+    ```
+
+  - `state` 对象：初始化组件中的私有变量，也就是这个对象，注意：该对象是可读可写的哦！
+
+    ```jsx
+    import React from 'react';
+    import ReactTypes from 'prop-types';
+    
+    export default class Counter extends React.Component{
+        constructor(props) {
+            super(props);
+            this.state = {
+    			data ： 'hello world'
+            }
+        }
+        render(){
+            return <div>
+                <h3>当前数量是：{this.state.data}</h3>
+            </div>
+        }
+    }
+    ```
+
+  - `compoentWillMount` 生命周期函数：组件将要被挂载了，此时还没有开始渲染虚拟 DOM，该函数等同于vue中的`created` ，适合写一些ajax，获取数据的请求。但该函数是不可以对页面上的dom元素进行操作的，因为不管是虚拟DOM还是真实的DOM都未被渲染出来，但是在该函数中，我们可以使用我们自定义的方法。 
+
+    ```jsx
+    import React from 'react';
+    import ReactTypes from 'prop-types';
+    
+    export default class Counter extends React.Component{
+        constructor(props) {
+            super(props);
+            this.state = {
+                data : 'hello world'
+            }
+        }
+        componentWillMount(){
+            this.state.data = '你好，世界';
+        }
+        render(){
+            return <div>
+                {this.state.data}
+            </div>
+        }
+    }
+    ```
+
+  - `render` 生命周期函数：首次渲染虚拟DOM，当render执行完毕时就表示虚拟DOM已经渲染好了，但是虚拟DOM还在内存中，还没有挂载到页面上，所以我们不可以访问我们渲染出来的DOM
+
+  - `componentDidMount`生命周期函数：虚拟DOM完成了挂载，此时，组件已经显示到了页面上，此时，我们可以`操作渲染出的DOM元素`，当这个函数执行完成时表示将要进入 `组件运行` 阶段了
+
+    ```jsx
+    import React from 'react';
+    import ReactTypes from 'prop-types';
+    
+    export default class Counter extends React.Component{
+        constructor(props) {
+            super(props);
+            this.state = {
+                data : 'hello world'
+            }
+        }
+        componentWillMount(){
+            this.state.data = '你好，世界';
+        }
+        render(){
+            return <div id='hello'>
+                {this.state.data}
+            </div>
+        }
+        componentDidMount(){
+            console.log(document.getElementById('hello'))
+        }
+    }
+    ```
+
+- `组件运行`阶段：当 `state` 和 `props` 改变时该生命走起函数就会被触发，所以该生命周期函数就会被触发 0 次或多次
+
+  - `componentWillReceiveProps` 生命周期函数：组件将要接收的属性改变了，此时，该函数会被触发
+
+  - `shouldComponentUpdate` 生命周期函数：组件将要被更新，此时，组件还没有被更新，但是，state 和 props 会被更新成最新的值
+
+    ```jsx
+    import React from 'react';
+    import ReactTypes from 'prop-types';
+    
+    export default class Counter extends React.Component{
+        constructor(props) {
+            super(props);
+            this.state = {
+                data : 1
+            }
+        }
+        render(){
+            return <div id='hello'>
+                {this.state.data}
+                <br/>
+                <button onClick={ this.increaseOne }>+1</button>
+            </div>
+        }
+        increaseOne = ()=>{
+            this.setState({
+                data : this.state.data + 1
+            })
+        }
+        componentDidMount(){
+            console.log(document.getElementById('hello'))
+        }
+        shouldComponentUpdate(newProp,newState){
+            console.log(this.state.data)
+            console.log(newState)
+            return true
+        }
+    }
+    ```
+
+    注意：在`shouldComponentUpdate` 函数中有两个参数，这两个参数表示`prop` 当前的最新值，`state` 当前的最新值，若果你想要通过`this.state.data` 获取数据会有问题的，这个会拿到你上一次的数据，反正不是最新的数据
+
+  - `componentWillUpdate` 生命周期函数：此时，组件尚未更新，内存中的虚拟DOM数还是旧的
+    该函数要求必须返回 `ture` 或 `false` 表示，看上面的图知道，ture 就执行 render 重新渲染页面，false 表示不执行 render ，直接返回到运行中
+
+  - `render` 生命周期函数：再次渲染虚拟DOM，并根据 state 和 props 重新渲染，当render渲染完毕时，替换内存中的旧的DOM树，该 `render` 函数和 `组件创建`阶段的 `render` 函数是一致的，如果我们想要在更新数据的时候操作东西，而不是在第一次使用的话，可以使用`&&`来实现这个功能，`this.refs.num && console.log(this.refs.num)`
+
+  - `componentDidUpdate` 生命周期函数：此时，页面根据新的DOM树重新渲染页面，所有的东西都是最新的，我们可以放心的使用 DOM元素，state,props 等
+- `组件销毁`阶段：也是一个组件的一生只执行一次（就像一个人一生只会有一个死的动作）
+
+  - `componentWillMount` 生命周期函数：组件将要被销毁是触发
+
+
+
+## 事件
+
+React事件绑定属性的命名采用驼峰式写法。如果采用 JSX 的语法你需要传入一个函数作为事件处理函数，而不是一个字符串(DOM元素的写法)
+
+```jsx
+<button onclick={increaseOne}>
+  +1
+</button>
+```
+
+注意：你在构造函数中定义事件时一定要向这样定义函数：
+
+**方法一**
+
+```jsx
+increaseOne = ()=>{
+    this.setState({
+        data : this.state.data + 1
+    })
+}
+```
+
+如果不使用箭头函数，会报错，因为这时候的箭头函数将this指向改成了当前实例对象，否则就会指向为是 `undefined`
+
+**方法二**
+
+相信大家已经注意到了，只好改变`increaseOne` 的 this 指向 就可以解决这个问题，其实也不用箭头函数也可以，我们可以使用 `bind` ，那为什么我们不使用`apply`和`call` 呢？
+
+因为js的引擎看到`appply` 和 `call`时就会立即执行，这有违我们初衷，我们仅仅只是想改一下它们的this指向就可以了，而`bind` 完全符合我们的要求，他会改变返回的函数this指向并返回一个新的函数
+
+```jsx
+<button onclick={increaseOne.bind(this)}>
+  +1
+</button>
+```
+
+**方法三** (推荐)
+
+```jsx
+import React from 'react';
+import ReactTypes from 'prop-types';
+
+export default class Counter extends React.Component{
+    constructor(props) {
+        super(props);
+        this.state = {
+            data : 1
+        }
+    }
+    render(){
+        return <div id='hello'>
+            {this.state.data}
+            <br/>
+            <button onClick={ ()=>this.increaseOne() }>+1</button>
+        </div>
+    }
+    increaseOne(){
+        this.setState({
+            data : this.state.data + 1
+        })
+    }
+}
+```
+
+在 `<button onClick={ ()=>this.increaseOne() }>+1</button>` 在onclick后面的`{}` 中直接写上一个箭头函数，并在箭头函数中调用你要完成的函数，这种方式用的是最多的
+
+### 双向数据绑定
+
+`React` 默认不支持双向数据绑定（不像vue中的`v-model`），只支持单向的数据绑定，但是我们可以配合 `onchange事件` 来实现双向数据绑定
+
+```jsx
+import React from 'react';
+import ReactTypes from 'prop-types';
+
+export default class Counter extends React.Component{
+    constructor(props) {
+        super(props);
+        this.state = {
+            data : 1
+        }
+    }
+    render(){
+        return <div id='hello'>
+            {this.state.data}
+            <br/>
+            <button onClick={ ()=>this.increaseOne() }>+1</button>
+            <input type='text' value={this.state.data} onChange={this.myChange}></input>
+        </div>
+    }
+    myChange = (e) =>{
+        this.setState({
+            data: e.target.value
+        })
+    }
+    increaseOne(){
+        this.setState({
+            data : this.state.data + 1
+        })
+    }
+    componentDidMount(){
+        console.log(document.getElementById('hello'))
+    }
+}
+```
+
+## context
+
+在父组件中，定义一个名字为`getChildContext` 的函数名称，这个函数的名称是固定的，而这个函数返回一个对象，我们就可以在这个父组件以下的所有子组件中使用这个我们共享的对象，通过`this.context.XXX`进行访问数据。
+
+```jsx
+import React from 'react';
+import ReactTypes from 'prop-types';
+
+export default class Context extends React.Component {
+    constructor(props){
+        super(props);
+        this.state = {
+            say: `hello world`
+        }
+    }
+    getChildContext () {		
+        return {
+            say: this.state.say,
+        }
+    }
+    static childContextTypes = {	// 注意必须使用这个对象校验
+        say: ReactTypes.string,
+    }
+    render(){
+        return <div>
+            <h1>这是context父组件</h1>
+            <Com1></Com1>
+        </div>
+    }
+}
+
+class Com1 extends React.Component {
+    render(){
+        return <div>
+            <h2>这是com1子组件</h2>
+            <Com2></Com2>
+        </div>
+    }
+}
+
+class Com2 extends React.Component {
+    render(){
+        return <div>
+            <h3>这是com2子组件</h3>
+            <Com3></Com3>
+        </div>
+    }
+}
+class Com3 extends React.Component {
+    static contextTypes = {			// 在要使用的子组件位置也要使用这个对象校验
+        say: ReactTypes.string
+    }
+    render(){
+        return <div>
+            <h4>这是com3子组件</h4>
+            <p>说了：{this.context.say}</p>
+        </div>
+    }
+}
+```
+
+注意：要使用 `context` 都要在子组件和父组件中进行类型校验，才可以在子组件中进行使用
+
+- 父组件使用：`static childContextTypes` 
+- 子组件使用：`static contextTypes`
+
+## 路由
+
+### 下载
+
+```shell
+npm i react-router-dom -s
+```
+
+### 使用
+
+按需导入 `react-router-dom`
+
+```jsx
+import {HashRouter,Route,Link} from 'react-router-dom';
+```
+
+其中：
+
+- **HashRouter** 组件表示：一个路由的根容器，所以与路由相关的东西，都要包裹在 `HashRouter` 里面，而且一个网站项目中只需使用一次HashRouter 就可以了。
+
+  ```jsx
+  import React from 'react'
+  import {HashRouter,Route,Link} from 'react-router-dom';
+  export default class App extends React.Component {
+      constructor (props) {
+          super(props);
+          this.state = {};
+      }
+      render () {
+          return <HashRouter>
+              <h1>这是网址的APP根组件</h1>
+          </HashRouter>
+      }
+  }
+  ```
+
+  当使用 `HashRouter` 把**根组件**的元素包裹起来之后，网站就启动路由了
+
+  注意：在一个`HashRouter` 元素中只能有唯一一个根元素，并且在一个网站中，只需要使用唯一一次`<HasRouter></HashRouter>`就行了
+
+- **Route** 组件表示：路由规则，在 Route 中，有两个比较重要的属性:`path` 和 `component` 
+
+  ```jsx
+  import React from 'react'
+  import {HashRouter,Route,Link} from 'react-router-dom';
+  
+  // 导入组件
+  import Home from './components/Home';
+  import About from './components/About';
+  import Movie from './components/Movie';
+  
+  export default class App extends React.Component {
+      constructor (props) {
+          super(props);
+          this.state = {};
+      }
+      render () {
+          return <HashRouter>
+              <div>
+                  <Route path='/home' component={Home}></Route>
+                  <Route path='/movie' component={Movie}></Route>
+                  <Route path='/about' component={About}></Route>
+              </div>
+          </HashRouter>
+      }
+  }
+  ```
+
+- **Link** 组件表示：一个路由的链接，就像 vue 中的 `router-link 标签`
+
+  ```jsx
+  import React from 'react'
+  import {HashRouter,Route,Link} from 'react-router-dom';
+  
+  // 导入组件
+  import Home from './components/Home';
+  import About from './components/About';
+  import Movie from './components/Movie';
+  
+  export default class App extends React.Component {
+      constructor (props) {
+          super(props);
+          this.state = {};
+      }
+      render () {
+          return <HashRouter>
+              <div>
+                  <h1>这是网址的APP根组件</h1>
+                  <hr/>
+                  <Link to='/home'>首页</Link>&nbsp;&nbsp;&nbsp;
+                  <Link to='/movie'>电影</Link>&nbsp;&nbsp;&nbsp;
+                  <Link to='/about'>关于</Link>&nbsp;&nbsp;&nbsp;
+                  <hr/>
+                  <Route path='/home' component={Home}></Route>
+                  <Route path='/movie' component={Movie}></Route>
+                  <Route path='/about' component={About}></Route>
+              </div>
+          </HashRouter>
+      }
+  }
+  ```

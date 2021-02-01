@@ -1,0 +1,121 @@
+`注意：` 
+
+`React-navigation 4.x` 将 `createStackNavigator ` 等组件放到 `react-navigation-stack` 中，`createBottomTabNavigator ` 等导航栏放到了 `react-navigation-tabs` 中，想要使用必须还要先安装它们
+
+## React-Navigation 底部导航栏实现当页面数量大于等于2时，实现隐藏底部导航栏
+
+```js
+export default createBottomTabNavigator(
+  {
+	// 组件 ...
+  },
+  {
+    defaultNavigationOptions: ({navigation}) => {
+      const {routes} = navigation.state;
+      let flat = true;
+      if (routes && routes.length > 1) {
+        flat = false;
+      }
+      return {
+        tabBarVisible: flat,
+      };
+    },
+  },
+);
+```
+
+`defaultNavigationOptions` 中我们可以通过 `navigation.state.routes` 来判断当前页面是否是正在处于第一张页面，如何是就返回 `{tabBarVisible: false}`  该属性主要是用来设置底部导航栏的显示和隐藏问题
+
+## 如何实现打开APP有一个页面，过几秒后跳转到主页面
+
+`createSwitchNavigator` 来实现该功能，该函数是的目的是，如果我们跳转到 `Main` 就会销毁 `Init` （不可在返回Init页面），实现当我们打开APP先弹出一个广告页面，过几秒在到主页面的效果
+
+```js
+import {createAppContainer, createSwitchNavigator} from 'react-navigation';
+
+import InitNavigation from './InitNavigation';
+
+import MainNavigaion from './MainNavigaion';
+
+let AppNav = createSwitchNavigator(
+  {
+    Init: InitNavigation,
+    Main: MainNavigaion,
+  },
+  {
+    navigationOptions: {
+      header: null,
+    },
+  },
+);
+
+// And the app container
+export default createAppContainer(AppNav);
+```
+
+InitNavigation.js:
+
+```js
+/**
+ * 初始页：放广告的地方
+ */
+import {createStackNavigator} from 'react-navigation-stack';
+import InitPage from '../pages/InitPage';
+
+export default createStackNavigator({
+  InitPage: {
+    screen: InitPage,
+    navigationOptions: {
+      header: null,
+    },
+  },
+});
+```
+
+InitPage.js:
+
+```js
+import React, {Component} from 'react';
+import {StyleSheet, View, Text} from 'react-native';
+
+export default class initPage extends Component {
+  componentDidMount() {
+    const {navigate} = this.props.navigation;
+    this.timer = setTimeout(() => {
+      navigate('Main');
+    }, 100);
+  }
+  componentWillUnMount() {
+    this.timer && clearTimeout(this.timer);
+  }
+  render() {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.welcome}>Welcome to page</Text>
+      </View>
+    );
+  }
+}
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  welcome: {
+    fontSize: 20,
+    color: 'black',
+  },
+});
+
+```
+
+通过 `setTimeout` 和 `navigation.navigate('Main')` 来实现过几秒跳转的效果
+
+## 点击 TextInput 弹出的软键盘，而底部导航栏也在软键盘上方，并没有隐藏（Android）
+
+![1574002870524](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1574002870524.png)
+
+找到图中的文件：
+
+![1574002939423](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1574002939423.png)
+
+将**AndroidManifest.xml**文件中找到**android:windowSoftInputMode**将其值修改为为：`stateAlwaysHidden|adjustPan`

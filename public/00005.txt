@@ -1,0 +1,101 @@
+﻿## 下载MySQL
+
+MySQL的官网的网址：https://www.mysql.com/
+
+点击 `DOWNLOADS`
+
+![在这里插入图片描述](http://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/20190311200434240.png)
+
+你接下来回看到下图：
+
+![在这里插入图片描述](http://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/20190311200502732.png)
+
+把网页向下拉，你会看见如下图：
+![在这里插入图片描述](http://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/20190311200604756.png)
+
+
+点进去，你会看见下图：
+
+![在这里插入图片描述](http://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/20190311200614379.png)
+
+你接下来会看见下图：
+
+![在这里插入图片描述](http://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/20190311200621437.png)
+
+向下滑动网页：
+
+![在这里插入图片描述](http://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/20190311200702171.png)
+
+会弹出下图：
+
+![在这里插入图片描述](http://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/20190311201044296.png)
+
+就会弹出：
+
+![在这里插入图片描述](http://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/20190311200748184.png)
+
+下载完成后：
+
+![在这里插入图片描述](http://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/20190311200826726.png)
+如下图所示：
+![在这里插入图片描述](http://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/20190311200842161.png)
+
+
+
+
+## 配置环境变量
+
+接下来就是配置环境变量：
+
+1. 点击进入压缩出来的文件夹（如上图的：`mysql-8.0.15-winx64` 文件夹）
+
+2. 进入 `bin` 目录
+
+   你会看见如下图：
+![在这里插入图片描述](http://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/20190311201123833.png)
+   
+
+3. 返回桌面，右击 **此电脑** ,在弹出的快捷方式中选择 **属性** 
+
+4. 点击 **高级系统设置**
+
+![在这里插入图片描述](http://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/201903112011517.png)
+
+5. 在弹出的对话框中：
+
+   ![在这里插入图片描述](http://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/20190311201232517.png)
+6. 选择 path，如下图：
+
+![在这里插入图片描述](http://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/20190311201644172.png)
+
+7. 把刚才复制的`mysql-8.0.15-winx64` 文件的路径，粘贴到这里
+
+   ![在这里插入图片描述](http://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/20190311201700228.png)
+
+2. 点击确定：
+
+![在这里插入图片描述](http://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/20190311201329749.png)
+9. 点击确定：
+![在这里插入图片描述](http://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/20190311201317331.png)
+
+
+
+## 查看 MySQL 数据库是否安装成功
+
+在 windows 下打开命令操作符
+
+![在这里插入图片描述](http://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/20190311201348463.png)
+
+## 初始 MySQL 数据库
+
+输入如图中的命令：
+
+
+
+![在这里插入图片描述](http://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/20190311201355948.png)
+
+
+这样你的 MySQL 下载及其安装就成功了。
+
+
+

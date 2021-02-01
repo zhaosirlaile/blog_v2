@@ -1,0 +1,341 @@
+> 学前准备：**Object.defineProperty**、**观察者模式**
+
+**index.html** 的准备：
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+    <script src="./MVVM.js"></script>
+    <div id="app">
+        <p>{{hi}}</p>
+        <p>{{a}}</p>
+        <p>{{b.b}}</p>
+        <p>欢迎你</p>
+    </div>
+    <script>
+        let vm = new MVVM({
+            el: '#app',
+            data: {
+                hi: 'hello world',
+                a: 1,
+                b: {
+                    a: 1,
+                    b: 2
+                },
+            }
+        })
+    </script>
+</body>
+</html>
+```
+
+**MVVM.js**
+
+注意：我们所有的vue数据绑定代码的写在里面：
+
+```js
+function MVVM(options) {
+    this.$options = options;	// 将传过来的 options 挂载在对象上
+    this.$el = document.querySelector(options.el);	//获取 options.el 中的元素，并将它也挂载在对象上；
+    this.data = options.data;	// 这个也是挂载在对象上；
+
+    compile(this.$el,this);		// 调用 compile函数，主要是把我们在 this.$el 上得到的元素进行编译，将原来只有{{}}的元素节点替换成应该有的数据
+    
+    function compile(el,vm) {
+        // 创建一个新的空白的文档片段，暂时开辟的空间
+        let fragment = document.createDocumentFragment();
+        // 遍历 this.$el 中的所有子元素，并将它们插入到 fragment 文档片段中
+        while(firstChild = el.firstChild) {
+            fragment.appendChild(firstChild);
+        }
+        
+        
+        // 调用 replace 函数 ，该函数的主要作用是：将 fragment 中没数据的元素替换成有数据的元素；
+        replace(fragment);
+        
+        
+        function replace(fragment) {
+            // 因为 fragment.childNodes 是一个类数组，最好是转换为数组，那样好操作
+            [...fragment.childNodes].forEach((node) => {
+               	// 定义我们要使用的正则表达式
+                let reg = /\{\{(.*)\}\}/;      
+                // 获取 node 中的文本内容
+                let content = node.textContent;
+                // 判断元素节点的类型，并对它的文本内容进行正则的匹配（就是匹配 {{}} ）。
+                if (node.nodeType === 1 && reg.test(content) ){
+                    let arrs = RegExp.$1.split('.');		// 获取我们匹配到的文本内容
+                    let val = vm.data;						// 将 this.data 赋值给 val
+                    // 循环取值，直到将取到值
+                    arrs.forEach((item) => {
+                        val = val[item];
+                    })
+                    
+                    // 替换数据，例如将 {{b.b}}的数据替换为 2
+                    node.textContent = content.replace(/\{\{(.*)\}\}/,val);
+                }
+                if (node.childNodes) {	// 如果元素节点还有节点的话，再次调用 replace
+                    replace(node);
+                }
+            })
+        }
+
+        
+        
+        // 将更新好的元素全部从fragment文档片段插入到 this.$el 中
+        el.appendChild(fragment);
+    }
+
+
+}
+```
+
+- 如果不了解`document.createDocumentFragment()` 请参见：https://developer.mozilla.org/zh-CN/docs/Web/API/Document/createDocumentFragment
+- 使用`document.createDocumentFragment()` 该方法的原因是：该方法会在内存中开辟一片空间，也就意味着它会给我们带来更好的性能。
+- 如果不了解**RegExp.$1**，请参见：https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/RegExp/n
+
+这是原来的样子：
+
+![1571537282050](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1571537282050.png)
+
+现在的样子：
+
+![1571537352713](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1571537352713.png)
+
+> 但是有一个问题如果我们去修改 data 中的数据，在视图中是不会进行修改的，这是为什么呢？其实就是我们开始提到过的 **Object.defineProperty** ，现在我们来了解一下它把。
+
+**该方法允许精确添加或修改对象的属性**，它可以来控制一个对象属性的一些特有操作，比如读写权、是否可以枚举，这里我们主要先来研究下它对应的两个描述属性get和set，如果还不熟悉其用法，请参照MDN的文档：https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty
+
+这是一个例子，不是在 MVVM.js 中的代码：
+
+```js
+var data = {}
+var name = '张三'
+Object.defineProperty(data, 'name', {
+    get: function () {			// 这是读取操作
+        return '我的名字是：' + name
+    },
+    set: function (newVal) {		// 这是修改操作
+        if (newVal === name) {
+            console.log('我的名字没有修改：' + name);
+        } else {
+            name = newVal;
+            console.log('我的名字修改成了：' + name);
+        }
+    }
+})
+ 
+console.log(data.name);  // 我的名字是：张三
+data.name = '李四';	// 我的名字修改成了：李四
+data.name = '李四';	// 我的名字没有修改：李四
+```
+
+做了这个例子，应该理解了，但是还有一个**观察者模式**，这个不好叙述，我还是上图吧：
+
+![1571540092437](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1571540092437.png)
+
+上图中一些重要函数的作用：
+
+1. **监听器Observe**：用来劫持并监听所有属性，如果有变动的，就**通知订阅者**。
+2. **订阅者Watcher**：作为连接Observer和Compile的桥梁，能够订阅并收到每个属性变动的通知，执行指令绑定的相应回调函数，从而更新视图 
+3. **解析器Compile**：可以扫描和解析每个节点的相关指令，并根据初始化模板数据以及初始化相应的订阅器。
+4. **Dep** ：用来保存**订阅者Watcher**
+
+修改代码：
+
+```js
+function MVVM(options) {
+    this.data = options.data;	
+    // 上面的都不变
+    
+    // 监听器Observe:主要是劫持 this.data 中的所有的数据，如果有变动的，就通知Dep,而Dep再来通知订阅者Watcher。
+    observe(options.data);
+    
+    function observe(data) {
+        if (typeof(data) !== "object") return;
+        defineOneObserve(data);
+    }
+    function defineOneObserve(data) {
+        let dep = new Dep();		// new 一个 dep 对象，在后面的 get 中进行添加，在 set 中进行发布
+        for (let key in data) {
+            let val = data[key];
+            observe(val);
+            Object.defineProperty(data,key,{
+                get:function(){
+                    // 判断静态属性 Dep.target是否有值（短路），如果没有就不执行，如果有的话，就把 Dep.target 添加到 dep 中
+                    Dep.target && dep.addSub(Dep.target);
+                    return val;
+                },
+                set: function(newVal) {
+                    if (val === newVal) return val;
+                    val = newVal;
+                    observe(val);                        
+                    dep.notify(); 	// 修改了值就触发 dep.notify 发布，触发 Watcher,进而更新视图
+                }
+            })
+        }
+    }
+    
+    // Dep 用来存储 Watcher,(观察者模式)
+    function Dep() {
+        this.cacheList = [];	// 每项都是一个Watcher
+    }
+    Dep.prototype.addSub = function(sub) {
+        this.cacheList.push(sub);	// 添加 Watcher
+    }
+    Dep.prototype.notify = function() {
+        // 触发 Watcher
+        this.cacheList.forEach(item => item.update()); 
+    }
+    
+    function Watcher(vm, exp, fn) {
+        // vm 是 MVVM,
+        // exp 是 {{}} 中的文本，也是属性 : b.b
+        // fn 是 回调函数，用来替换视图
+        this.vm = vm;
+        this.exp = exp;
+        this.fn = fn;
+        let val = vm.data;
+        let arrs = exp.split('.');
+        Dep.target = this;	// 将 Watcher 挂载在 Dep.target 上
+        arrs.forEach(key => {
+            val = val[key];		// 触发 get ,添加 Watcher
+        })
+        Dep.target = null;		// 添加完成，Dep.target 重新设置为空
+    }
+    Watcher.prototype.update = function() {
+        let val = this.vm.data;
+        let arrs = this.exp.split('.');
+        arrs.forEach(key => {
+            val = val[key];
+        })				// 拿到最新的值
+        this.fn(val);	// 调用回调函数
+    }
+    
+    compile(this.$el,this);
+    function replace(fragment) {
+        [...fragment.childNodes].forEach((node) => {
+            // 省略...
+            arrs.forEach((item) => {
+                val = val[item];
+            })
+            if (node.nodeType === 1 && reg.test(content) ){
+                // 添加以下
+                // 触发 Watcher ，并将它保存到 dep 中，并且这里形成了闭包（回调函数）
+                new Watcher(vm,RegExp.$1,function(newVal){		
+                    node.textContent = content.replace(/\{\{(.*)\}\}/,newVal);
+                });
+                // 添加以上
+            }
+        })
+    }
+}
+
+```
+
+如图：
+
+![](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/Video_2019-10-20_113150%5B00-00-00--00-00-24%5D.gif)
+
+**完整代码**：MVVM.js：
+
+```js
+function MVVM(options) {
+    this.$options = options;
+    this.$el = document.querySelector(options.el);
+    this.data = options.data;
+    observe(options.data);
+    function observe(data) {
+        if (typeof(data) !== "object") return;
+        defineOneObserve(data);
+    }
+    function defineOneObserve(data) {
+        let dep = new Dep();
+        for (let key in data) {
+            let val = data[key];
+            observe(val);
+            Object.defineProperty(data,key,{
+                get:function(){
+                    Dep.target && dep.addSub(Dep.target);
+                    return val;
+                },
+                set: function(newVal) {
+                    if (val === newVal) return val;
+                    val = newVal;
+                    observe(val);                        
+                    dep.notify();  
+                }
+            })
+        }
+    }
+
+    function Dep() {
+        this.cacheList = [];
+    }
+    Dep.prototype.addSub = function(sub) {
+        this.cacheList.push(sub);
+    }
+    Dep.prototype.notify = function() {
+        this.cacheList.forEach(item => item.update());
+    }
+    function Watcher(vm, exp, fn) {
+        this.vm = vm;
+        this.exp = exp;
+        this.fn = fn;
+        let val = vm.data;
+        let arrs = exp.split('.');
+        Dep.target = this;
+        arrs.forEach(key => {
+            val = val[key];
+        })
+        Dep.target = null;
+    }
+    Watcher.prototype.update = function() {
+        let val = this.vm.data;
+        let arrs = this.exp.split('.');
+        arrs.forEach(key => {
+            val = val[key];
+        })
+        this.fn(val);
+    }
+
+    compile(this.$el,this);
+    function compile(el,vm) {
+        let fragment = document.createDocumentFragment();
+        while(firstChild = el.firstChild) {
+            fragment.appendChild(firstChild);
+        }
+        function replace(fragment) {
+            [...fragment.childNodes].forEach((node) => {
+                let reg = /\{\{(.*)\}\}/;                    
+                let content = node.textContent;
+                if (node.nodeType === 1 && reg.test(content) ){
+                    let arrs = RegExp.$1.split('.');
+                    let val = vm.data;
+                    arrs.forEach((item) => {
+                        val = val[item];
+                    })
+                    new Watcher(vm,RegExp.$1,function(newVal){
+                        node.textContent = content.replace(/\{\{(.*)\}\}/,newVal);
+                    });
+                    node.textContent = content.replace(/\{\{(.*)\}\}/,val);
+                }
+                if (node.childNodes) {
+                    replace(node);
+                }
+            })
+        }
+        replace(fragment);
+        el.appendChild(fragment);
+    }
+}
+```
+
+
+

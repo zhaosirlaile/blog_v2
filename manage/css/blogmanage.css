@@ -1,0 +1,41 @@
+.content {
+    padding: 20px;
+}
+.w .main {
+    height: auto;
+}
+.content .action {
+    padding: 20px 0;
+    background-color: #999;
+}
+.w .main .nav {
+    height: auto;
+}
+.content .contentitem {
+
+}
+.contentitem .item {
+    padding: 16px 0;
+    border-bottom: 1px dotted #ddd;
+    color: #999;
+    font-size: 12px;
+}
+.item h4 {
+    color: #4D4D75;
+}
+.item>div {
+    margin-top: 10px;
+    display: flex;
+    justify-content: space-between;
+}
+.item>div .item-right a {
+    text-decoration: none;
+    margin-left: 10px;
+    display: inline-block;
+}
+.item>div .item-right .delete {
+    color: #CA0C16;
+}
+a {
+    cursor: pointer;
+}

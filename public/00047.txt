@@ -1,0 +1,201 @@
+## 自己编写一个 Loader
+
+目录结构：
+
+![1584247530199](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1584247530199.png)
+
+我在 `loaders` 目录下写了一个 `replaceLoader.js` 的文件，代码如下：
+
+```js
+module.exports = function(source) {
+    return source.replace('world', '你好')
+}
+```
+
+> 其实 **Loader** 就是一个函数，但是**不可以**使用 **箭头函数** ，为什么？因为箭头函数会改变我们的**指向**
+
+`src` 目录中我就自由一个 `index.js` ，代码如下：
+
+```js
+console.log('hello world');
+```
+
+在 `webpack.config.js` 中使用这个非常简单的 `Loader` ，代码如下：
+
+```js
+const path = require('path');
+module.exports = {
+    mode: 'development',
+    entry: {
+        main: './src/index.js',
+    },
+    module: {
+        rules: [
+            {
+                test: /\.js/,
+                use: [path.join(__dirname,'./loaders/replaceLoader.js')]
+            }
+        ]
+    },
+    output: {
+        path: path.join(__dirname,'dist'),
+        filename: '[name].js',
+    }
+}
+```
+
+打包过后就会将你 `world` 替换成 `你好`
+
+如果你想要**传递参数**，可以这样：
+
+```js
+module.exports = {
+    module: {
+        rules: [
+            {
+                test: /\.js/,
+                use: [
+                    {
+                        loader: path.join(__dirname,'./loaders/replaceLoader.js'),
+                        options: {
+                            name: 'zhangSan'
+                        }
+                    }
+                ]
+            }
+        ]
+    },
+}
+```
+
+通过 `this.query` 来获取 `options` 中的数据，此外你还可以通过 `loader-utils` 中的 `getOptions`来获取数据
+
+想了解更多可以参看：<https://www.webpackjs.com/api/loaders/>
+
+## 自定义一个插件
+
+目录结构：
+
+![1584504414766](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1584504414766.png)
+
+使用过 **plugin** 应该都了解，它是一个 **构造函数**，代码如下：
+
+coptyRight-webpack-plugin.js
+
+```js
+module.exports = class CopyrightWebpackPlugin {
+    apply(compiler){
+        compiler.hooks.emit.tapAsync('CopyrightWebpackPlugin',(compilation, callback) => {
+            compilation.assets['copyright.txt'] = {
+                source: function() {
+                    return 'hello world'
+                },
+                size: function() {
+                    return 11;
+                }
+            };
+            callback();
+        })
+    }
+}
+```
+
+这个有什么作用呢？
+
+> 就是在打包生成资源到 output 目录之前，多生成一个名为 `copyright.txt` 的文件
+
+其中 **compiler** 中保存的是所有关于插件的信息，**hooks** 表示 **生命周期函数（钩子）** , **emit** 就表示的是 **生成资源到 output 目录之前** ，**tapAsync** 表示 **异步**，**compilation** 表示 **当前打包的所有信息**， **assets** 表示 **当前 output 中的所有文件信息**
+
+想了解更多：<https://www.webpackjs.com/api/plugins/>
+
+## 模拟 webpack 打包方式
+
+提前安装：`@babel/core`，`@babel/traverse`，`@babel/parser`，`'@babel/preset-env'`
+
+目录结构：
+
+![1584521141226](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1584521141226.png)
+
+bunder.js
+
+```js
+const fs = require('fs');
+const path = require('path');
+const paser = require('@babel/parser');
+const traverse = require('@babel/traverse').default;
+const babel = require('@babel/core');
+
+const  moduleAnalyser = (filename) => {
+    const content = fs.readFileSync(filename, 'utf-8');
+    const ast = (paser.parse(content,{
+        sourceType: 'module'
+    }));
+    const dependencies = {}
+    traverse(ast, {
+        ImportDeclaration({ node }) {
+            const dirname = path.dirname(filename);
+            const newFile = path.join(dirname, node.source.value);
+            dependencies[node.source.value] = newFile;
+        }
+    })
+    const { code } = babel.transformFromAst(ast, null, {
+        presets: ['@babel/preset-env']
+    })
+    return {
+        filename,
+        dependencies,
+        code,
+    }
+}
+
+const makeDependenciesGraph = (entry) => {
+    const entryModule = moduleAnalyser(entry);
+    const graphArray = [entryModule]
+
+    for(let i = 0; i < graphArray.length; i++) {
+        const item = graphArray[i];
+        const {dependencies} = item;
+        if(dependencies) {
+            for(let j in dependencies) {
+                graphArray.push(moduleAnalyser(dependencies[j]))
+            }
+        }
+    }
+    const graph = {};
+    graphArray.forEach(item => {
+        graph[item.filename] = {
+            dependencies: item.dependencies,
+            code: item.code,
+        }
+    })
+    return graph;
+}
+
+
+const generateCode = (entry) => {
+    const graph = JSON.stringify(makeDependenciesGraph(entry));
+    return `
+        (function(graph) {
+            function require(module) {
+                function localRequire(relativePath) {
+                    return require(graph[module].dependencies[relativePath])
+                }
+                var exports = {};
+                (function(require,exports , code) {
+                    eval(code)
+                })(localRequire,exports ,graph[module].code);
+                return exports;
+            };
+            require('${entry}')
+        })(${graph})
+    `
+}
+
+
+const code = generateCode('./src/index.js');
+console.log(code);
+```
+
+src 下的文件都是随便写的。
+
+好了，虽然我以前学过点，但还是不得其解，现在回头仔细梳理一下也是好的，这个系列也是边学边写的。

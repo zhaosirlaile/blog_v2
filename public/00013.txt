@@ -1,0 +1,964 @@
+﻿## 如何使用？
+
+`注意：后面的 html、js 代码都会以写在 body体 这里`
+
+1. 先在 html 文件中导入 `vue`，这时候就有一个 `Vue` 构造函数，可以通过 `new` 来构造一个实例
+
+   - ```html
+     <!DOCTYPE html>
+     <html lang="en">
+     <head>
+         <meta charset="UTF-8">
+         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+         <meta http-equiv="X-UA-Compatible" content="ie=edge">
+         <title>Document</title>
+         <script src="./lib/vue-2.4.0.js"></script>
+         <!-- 导入 vue.js 文件 -->
+     </head>
+     <body>
+         <!-- 下面的html,js代码都会以写在这里 -->
+     </body>
+     </html>
+     ```
+
+2. 创建一个 Vue 的实例
+
+   ```html
+   <div id='vue'>
+       <p>
+           {{ msg }}<!-- vue 中提供的模板，和 art-template 类似 -->
+       </p>
+   </div>
+   <script>
+   let vue = new Vue({
+   	el:'#vue',
+       data:{
+   		msg:'hello Vue'
+       }
+   })
+   </script>
+   ```
+
+   - `el` ：表示当前我们 `vue` 实例在页面上控制的区域，它获取DOM对象的方式和JQuery非常类似.(**String**)
+   - `data` ：表示存放在当前我们 `vue` 实例在页面上控制的区域中要用到的数据.(**Object**)
+
+## 生命周期
+
+生命周期：从 Vue 实例创建、运行、到销毁期间，总是伴随着各种各样的事件。而这些事件，统称为生命周期
+
+生命周期钩子：就是生命周期事件的别名
+
+其实，生命周期钩子 等同于 生命周期函数 等同于 生命周期事件
+
+生命周期一般分为三类：
+
+- `创建期间的生命周期钩子`
+  - `beforeCreate` 
+  - `created`
+  - `beforeMount`
+  - `mounted`
+- `运行期间的生命周期钩子`
+  - `beforeUpdate`
+  - `updated`
+- `销毁期间的生命周期钩子`
+  - `beforeDestroy`
+  - `destroyed`
+
+请参考 vue 官网上的生命周期图片：
+
+![在这里插入图片描述](http://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/20190421180649431.png)
+
+我们用 AJAX 请求服务器时，一般使用 `created` 生命周期钩子
+
+## 模板
+
+### 插值表达式
+
+数据绑定最常见的形式就是使用“Mustache”语法 (双大括号) 的文本插值：
+
+```html
+<div id='vue'>
+    <p >{{ msg }}</p>
+</div>
+<script>
+let vue = new Vue({
+	el:'#vue',
+    data:{
+		msg:'hello Vue'
+    }
+})
+</script>
+```
+
+## 指令
+
+在 `vue` 中所有的内置指令都会在前以 `v-` 开头，那 `vue` 中的指令又是什么呢？
+
+指令：它们作用于 DOM 元素，提供一些特殊的用法，避免我们写太多代码，也就是说是一些封装好的特性
+
+### v-cloak
+
+`cloak（披风）` ：这个指令可以用来解决网速加载很慢的时候，页面会先出现`{{}} (Mustache)`，再一闪而过出现真实的数据。(解决插值表达式闪烁的问题)
+
+css 代码:
+
+```css
+[v-clock] {
+	display: none;
+}
+```
+
+html、js 代码：
+
+```html
+<div id='vue'>
+    <p v-cloak>
+        {{ msg }}
+    </p>
+</div>
+<script>
+let vue = new Vue({
+	el:'#vue',
+    data:{
+		msg:'hello Vue'
+    }
+})
+</script>
+```
+
+### v-text
+
+v-text，和插值表示式功能类似，但是也是有区别的：
+
+- `v-text` 没有闪烁问题，而插值表达式 `{{}}` 有闪烁问题
+- `v-text` 会覆盖元素中原本的内容，但是插值表示式并不会覆盖，因为它只会替换自己的占位符
+
+```html
+<div id='vue'>
+    <p v-text='msg'><!-- v-text，和插值表示式功能类似 -->
+    </p>
+</div>
+<script>
+let vue = new Vue({
+	el:'#vue',
+    data:{
+		msg:'hello Vue'
+    }
+})
+</script>
+```
+
+### v-html
+
+v-html ,会将内容按 HTML 的形式插入到标签中，而 v-text、插值表达式 都是以 字符串 的形式插入到标签中
+
+```html
+<div id="vue" v-html='dom'>
+        
+</div>
+<script>
+    let vue = new Vue({
+        el:'#vue',
+        data:{
+            dom:'<p>hello vue,I used "p" label</p>'
+        }
+    })
+</script>
+```
+
+### v-bind
+
+v-bind 用于绑定 DOM 属性
+
+```html
+<div id="vue">
+    <button v-bind:title='mytitle'>title</button>
+</div>
+<script>
+    let vue = new Vue({
+        el:'#vue',
+        data:{
+            mytitle : '这是v-bind的title'
+        }
+    })
+</script>
+```
+
+`注意：v-bind 后面单引号部分会以js的形式进行解析，也就是可以使用js表达式`
+
+```html
+<div id="vue">
+    <button v-bind:title='mytitle + `js代码解析`'>title</button>
+</div>
+<script>
+    let vue = new Vue({
+        el:'#vue',
+        data:{
+            mytitle : '这是v-bind的title'
+        }
+    })
+</script>
+```
+
+简写：
+
+可以直接是用 `:` （英文冒号）表示 `v-bind:` 
+
+```html
+<div id="vue">
+    <button :title='mytitle + `js代码解析`'>title</button>
+</div>
+<script>
+    let vue = new Vue({
+        el:'#vue',
+        data:{
+            mytitle : '这是v-bind的title'
+        }
+    })
+</script>
+```
+
+### v-on
+
+v-on 用于绑定事件的，`v-on:` 后面的事件和 `jQuery` 中事件很类似
+
+`注意：在 vue 中，在为元素指定处理函数的时候，如果加了小括号，就可以给函数传递参数`
+
+```html
+<div id="vue">
+    <button v-on:click='alert'>按钮</button>
+</div>
+<script>
+    let vue = new Vue({
+        el:'#vue',
+        data:{
+            dom:'<p>hello vue,I used "p" label</p>'
+        },
+        methods:{
+            alert:function(){
+                alert("hello vue");
+            }
+        }
+    })
+</script>
+```
+
+- `methods` ：所有的方法都放在这里（**Object**）
+
+简写：
+
+可以直接是用 `@` （英文冒号）表示 `v-bind:` 
+
+```HTML
+<div id="vue">
+    <button @click='alert'>按钮</button>
+</div>
+<script>
+    let vue = new Vue({
+        el:'#vue',
+        data:{
+            dom:'<p>hello vue,I used "p" label</p>'
+        },
+        methods:{
+            alert:function(){
+                alert("hello vue");
+            }
+        }
+    })
+</script>
+```
+
+#### 事件修饰符
+
+就是用来处理事件的具体细节:
+
+1. `.stop`
+2. `.prevent`
+3. `.capture`
+4. `.self`
+5. `.once`
+
+以上都是常用的事件修饰符，还有其他的事件修饰符可以去 vue 的官网看
+
+- `.stop` - 阻止冒泡。
+
+  - ```html
+    <div id="vue">
+        <div class="inner" @click='div'>
+            <input type="button" value="戳它" @click.stop='input'>
+        </div>
+    </div>
+    <script>
+        let vue = new Vue({
+            el:'#vue',
+            data:{},
+            methods:{
+                div(){
+                    console.log('这是触发了 inner div 的点击事件')
+                },
+                input(){
+                    console.log('这是触发了 input 的点击事件')
+                }
+            }
+        })
+    </script>
+    ```
+
+- `-.prevent` - 阻止默认行为。
+
+  - ```html
+    <a id ='vue' href="https://www.baidu.com/" @click.prevent='alert'>www.baidu.com</a>
+    <script>
+        let vue = new Vue({
+            el:'#vue',
+            data:{},
+            methods:{
+                alert(){
+                    alert('阻止了a标签的默认行为')
+                }
+            }
+        })
+    </script>
+    ```
+
+- `.capture` - 添加事件侦听器时使用捕获触发机制。
+
+  - ```html
+    <div id="vue">
+        <div class="inner" @click.capture='div'>
+            <input type="button" value="戳它" @click='input'>
+        </div>
+    </div>
+    <script>
+        let vue = new Vue({
+            el:'#vue',
+            data:{},
+            methods:{
+                div(){
+                    console.log('这是触发了 inner div 的点击事件')
+                },
+                input(){
+                    console.log('这是触发了 input 的点击事件')
+                }
+            }
+        })
+    </script>
+    ```
+
+- `.self` - 只有当触发元素自己时才执行，像捕获、冒泡一律不执行。
+
+  - ```html
+    <div id="vue">
+        <div class="inner" @click.self='div'>
+            <input type="button" value="戳它" @click='input'>
+        </div>
+    </div>
+    <script>
+        let vue = new Vue({
+            el:'#vue',
+            data:{},
+            methods:{
+                div(){
+                    console.log('这是触发了 inner div 的点击事件')
+                },
+                input(){
+                    console.log('这是触发了 input 的点击事件')
+                }
+            }
+        })
+    </script>
+    ```
+
+- `.once` - 只触发一次。
+
+  - ```html
+    <a id ='vue' href="https://www.baidu.com/" @click.once.prevent='alert'>www.baidu.com</a>
+    <script>
+        let vue = new Vue({
+            el:'#vue',
+            data:{},
+            methods:{
+                alert(){
+                    alert('阻止了a标签的默认行为')
+                }
+            }
+        })
+    </script>
+    ```
+
+#### 按键修饰符
+
+在监听键盘事件时，我们经常需要检查常见的键值。Vue 允许为 v-on 在监听键盘事件时添加按键修饰符：
+记住所有的 keyCode 比较困难，所以 Vue 为最常用的按键提供了别名：
+
+- `.enter`
+- `.tab`
+- `.delete` (捕获“删除”和“退格”键)
+- `.esc`
+- `.space`
+- `.up`
+- `.down`
+- `.left`
+- `.right`
+
+```html
+<div id='vue'>
+    <input type="text" v-model='name' @keyup.enter='add'>
+    <!-- 注意： @keyup.enter 可以写成 @keyup.13  -->
+</div>
+<script>
+let vue = new Vue({
+            el:'#vue',
+            data:{
+                name:'',
+                id:'',
+                keywords:'',
+                arg:[
+                    {id:1,name:'张三',ctime:new Date()},
+                    {id:2,name:'张小',ctime:new Date()},
+                    {id:3,name:'王小非',ctime:new Date()},
+                    {id:4,name:'李水',ctime:new Date()},
+                    {id:5,name:'恒一',ctime:new Date()},
+                ]
+            },
+            methods:{
+                add(){
+                    this.arg.push({
+                        id:this.id,
+                        name:this.name,
+                        ctime:new Date()
+                    });
+                    this.id='';
+                    this.name='';
+                }
+            }
+}）
+</script>
+```
+
+#### 自定义键盘修饰符
+
+在原型上添加键盘修饰符：`Vue.config.keyCodes.键盘修饰符 = 键盘码`
+
+```html
+<script>
+	Vue.config.keyCodes.f2 = 113;
+   
+    let vue = new Vue({
+                el:'#vue',
+                data:{
+                    msg:'nihao'
+                }
+    }）
+</script>
+```
+
+
+
+### v-model
+
+v-model 是 `vue` 指令中唯一个支持 `双向数据绑定` 是指令
+
+那什么是`单向数据绑定`、`双向数据绑定`呢？
+
+#### 单向数据绑定
+
+在 vue 中，从 model 层到 view 层就是单项数据绑定，像`v-bind`、`v-text` 都是单项数据绑定
+
+#### 双向数据绑定
+
+在 vue 中，从 model 层到 view 层、并且 view层 到 model 层就是单项数据绑定，像 `v-model` 就是双向数据绑定
+
+#### 用法
+
+一般在 form 表单中使用 `v-modle` 指令
+
+```html
+<div id="vue">
+    <p>{{msg}}</p>
+    <input type="text" v-model='msg'>
+</div>
+<script>
+    let vue = new Vue({
+        el:'#vue',
+        data:{
+            msg:'hello Vue'
+        }
+    })
+</script>
+```
+
+### v-for
+
+vue 的循环渲染是依赖于 v-for 指令，它能够根据 vue 的实例里面的信息，循环遍历所需数据，然后渲染出相应的内容。它可以遍历数组、对象、数字类型。
+
+#### 对象
+
+```html
+<div id="vue">
+    <p v-for='(val,key,index) in person'>对：{{ val }}，键值：{{ key }}，索引：{{ index }}</p>
+</div>
+<script>
+    let vue = new Vue ({
+        el:'#vue',
+        data:{
+            person:{
+                id:1,
+                name:'yi',
+                sex:'nan'
+            }
+        }
+    })
+</script>
+```
+
+#### 数组
+
+```html
+<div id="vue">
+    <p v-for='(item,index) in arg'>ID：{{ item.id }}，姓名：{{ item.name }}，索引为：{{ index }}</p>
+</div>
+<script>
+    let vue = new Vue({
+        el:'#vue',
+        data:{
+            arg:[
+                {id:1, name:'zhangsan'},
+                {id:2, name:'lisi'},
+                {id:3, name:'wanglaowu'},
+                {id:4, name:'zhangxiao'},
+            ]
+        }
+    })
+</script>
+```
+
+#### 数字
+
+`注意：初始值为1开始`
+
+```html
+<div id="vue">
+    <p v-for='number in 100'>数字：{{ number }}</p>
+</div>
+<script>
+    let vue = new Vue ({
+        el:'#vue',
+        data:{
+            person:{
+                id:1,
+                name:'yi',
+                sex:'nan'
+            }
+        }
+    })
+</script>
+```
+
+### v-if
+
+`v-if` 在切换时元素会被销毁并重建
+
+```html
+<div id="vue">
+    <button @click='toggle'>toggle</button>
+    <p v-if='flag'>这是 v-if</p>
+</div>
+<script>
+    let vue = new Vue({
+        el:'#vue',
+        data:{
+            flag:true,
+        },
+        methods:{
+            toggle(){
+                this.flag = !this.flag;
+            }
+        }
+    })
+</script>
+```
+
+### v-show
+
+`v-show` 在切换时元素会隐藏元素，就是调用 `display:none`
+
+```html
+<div id="vue">
+    <button @click='toggle'>toggle</button>
+    <p v-show='flag'>这是 v-show</p>
+</div>
+<script>
+    let vue = new Vue({
+        el:'#vue',
+        data:{
+            flag:true,
+        },
+        methods:{
+            toggle(){
+                this.flag = !this.flag;
+            }
+        }
+    })
+</script>
+```
+
+### 自定义指令
+
+#### 全局的
+
+在 vue 中的指令，都是以 `v-` 开头，我们使用 `Vue.directive()` 来定义全局的指令
+
+```js
+Vue.directive('指令名称',{钩子函数})
+```
+
+- `指令名称` ：在定义指令名称是，是不需要加上 `v-` ，因为系统会默认给加上 `v-` ，所以在调用是，必须加上 `v- ` 前缀来进行调用
+
+- `钩子函数Vue.directive('focus',{bind:function(){},inserted:function(){},updated:function(){}})` ：
+
+  - `bind:function(){}` ：只调用一次，指令第一次绑定到元素时调用。在这里可以进行一次性的初始化设置，一般设置样式。
+
+    - ```js
+      Vue.directive('focus',{
+          bind:function(el){
+      		el.focus();
+          }
+      })
+      ```
+
+  - `inserted` ：被绑定元素插入父节点时调用 (仅保证父节点存在，但不一定已被插入文档中，只触发一次)，一般设置行为。
+
+  - `updated` ：所在组件的 VNode 更新时调用，指令的值可能发生了改变，也可能没有，可能会触发多次。
+
+`注意：在钩子函数中的每个函数列表中，第一个参数永远都是 el, 表示被绑定的那个元素，而这个 el 参数是一个原生的DOM对象，第二个参数是: binding 有很多属性`
+
+#### 私有的
+
+使用 `directive` 创建
+
+```html
+<div id = 'vue'>
+    <p v-model='msg' v-fontbold='1000'>
+        {{ msg }}
+    </p>
+</div>
+<script>
+	let vue2 = new Vue({
+            el:'#vue',
+            data :{
+                msg:'hello Vue'
+            },
+            directives:{
+                'fontbold' : {
+                    bind:function(el,binding) {
+                        el.style.fontWeight = binding.value
+                    }
+                }
+            }
+        })
+</script>
+```
+
+#### 简写
+
+在很多时候，你可能想在 `bind` 和 `update` 时触发相同行为，而不关心其它的钩子。比如这样写:
+
+```js
+Vue.directive('color-swatch', function (el, binding) {
+  el.style.backgroundColor = binding.value
+})
+```
+
+# Class 与 Style 绑定
+
+我们可以通过 `v-bind:` 或 `:` 来使操作元素class 列表和内联样式进行数据绑定，表达式结果的类型除了字符串之外，还可以是对象或数组。
+
+### 绑定 HTML Class
+
+#### 数组绑定 class
+
+css代码：
+
+```css
+.red {
+    color: red;
+}
+.italic {
+    font-style: italic;
+}
+.fontsize {
+    font-size: 5rem;
+}
+```
+
+body 里的代码：
+
+```html
+<div id="vue">
+    <h1 v-bind:class="['red','fontsize']">{{msg}}</h1>
+</div>
+<script>
+    let vue = new Vue({
+        el:'#vue',
+        data:{
+            msg:'数组绑定'
+        }
+    })
+</script>
+```
+
+在数组中的成员如果不带引号，会被当成变量解析，所以我们可以使用表达式：
+
+body 里的代码：
+
+```html
+<div id="vue">
+    <h1 v-bind:class="['red','fontsize',flag?'italic':'']">{{msg}}</h1>
+</div>
+<script>
+    let vue = new Vue({
+        el:'#vue',
+        data:{
+            flag:true,
+            msg:'数组绑定'
+        }
+    })
+</script>
+```
+
+等价于：
+
+```html
+<div id="vue">
+    <h1 v-bind:class="['red','fontsize',{'italic':flag}]">{{msg}}</h1>
+</div>
+<script>
+    let vue = new Vue({
+        el:'#vue',
+        data:{
+            flag:true,
+            msg:'对象代替三元表达式',
+        }
+    })
+</script>
+```
+
+#### 对象绑定 class
+
+css 代码：
+
+```css
+.red {
+    color: red;
+}
+.italic {
+    font-style: italic;
+}
+.fontsize {
+    font-size: 5rem;
+}
+```
+
+body 里的代码：
+
+由于js中的对象属性是可带可不带引号，所以这里就没有带
+
+```html
+<div id="vue">
+    <h1 v-bind:class="{red:true,fontsize:true,italic:true}">{{msg}}</h1>
+</div>
+<script>
+    let vue = new Vue({
+        el:'#vue',
+        data:{
+            flag:true,
+            msg:'对象绑定'
+        }
+    })
+</script>
+```
+
+等价于下方代码
+
+```html
+<div id="vue">
+    <h1 v-bind:class="{red:true,fontsize:true,italic:true}">{{msg}}</h1>
+</div>
+<script>
+    let vue = new Vue({
+        el:'#vue',
+        data:{
+            flag:true,
+            msg:'对象绑定',
+            objpro:{red:true,fontsize:true,italic:true},
+        }
+    })
+</script>        
+```
+
+### 绑定内联样式
+
+#### 对象绑定内联样式
+
+```html
+<div id="vue">
+    <h1 v-bind:style="{color:'red','fontsize':'4rem'}">{{msg}}</h1>
+</div>
+<script>
+    let vue = new Vue({
+        el:'#vue',
+        data:{
+            msg:'内联样式绑定',
+        }
+    })
+</script>
+```
+
+等价于以下代码
+
+```html
+<div id="vue">
+    <h1 v-bind:style="lineStyle">{{msg}}</h1>
+</div>
+<script>
+    let vue = new Vue({
+        el:'#vue',
+        data:{
+            msg:'内联样式绑定',
+            lineStyle:{color:'red','fontsize':'4rem'}
+        }
+    })
+</script>
+```
+
+#### 数组绑定内联样式
+
+```html
+<div id="vue">
+    <h1 v-bind:style="[lineStyle1,lineStyle2]">{{msg}}</h1>
+</div>
+<script>
+    let vue = new Vue({
+        el:'#vue',
+        data:{
+            msg:'内联样式绑定',
+            lineStyle1:{color:'red','fontsize':'4rem'},
+            lineStyle2:{background:'blue'},
+        }
+    })
+</script>
+```
+
+## 过滤器
+
+Vue允许你自定义过滤器，可被用于一些常见的文本格式化。过滤器可以用在两个地方：插值表达式 和 v-bind 表达式，过滤器应该被添加在 JavaScript 表达式的尾部，由 ` |` 管道符号指示，管道符的思路来自于 Linux 的管道符
+
+#### 全局过滤器
+
+所有的 vue 实例对象都可以共享的
+
+```html
+<div id="vue">
+    <p>{{ msg | replaceI('张三','成都')}}</p>
+</div>
+<script>				     		    Vue.filter('replaceI',function(data,paramenter1,paramenter2){
+        data = data.replace(/谁/g,paramenter1);
+        data = data.replace(/什么/g,new Date());
+        data = data.replace(/地点/g,paramenter2);
+        return data;
+    })
+    let vue = new Vue({
+        el : '#vue',
+        data:{
+            msg:'我是：谁，现在的时间是：什么，我居住在：地点'
+        }
+    })
+</script>
+```
+
+`注意：`
+
+`过滤器可以多次进行调用`
+
+#### 私有过滤器
+
+只可以自己使用的过滤器
+
+```html
+<div id="vue">
+    <p> {{ date| dataFormat() }}</p>
+</div>
+<script>
+    Vue.filter('dataFormat',function(data){
+        let year = data.getFullYear();
+        let month = data.getMonth()+1;
+        let date= data.getDate()
+        return `${year} - ${month} - ${date}`
+    }) 
+    let vue = new Vue({
+        el:'#vue',
+        data :{
+            date:new Date()
+        },
+        filters:{
+            dataFormat:function(data) {
+                data = new Date(data);
+                let year = data.getFullYear();
+                let month = data.getMonth()+1;
+                let date= data.getDate()
+                let hours = data.getHours();
+                let minute = data.getMinutes();
+                let second = data.getSeconds();
+                return `${year}-${month}-${date}  ${ hours }:${ minute }:${ second }`
+            }
+        }
+    })
+</script>
+```
+
+`注意：当 私有过滤器 和 全局过滤器 的名称一致时，则以优先调用 私有过滤器`
+
+## vue-resource 实现 AJAX 请求
+
+vue-resource 是 vue 的插件，提供了 XMLHttpRequest 或 JSONP 发出Web请求和处理响应的服务。
+
+### 安装
+
+需要你下载了 npm 
+
+```shell
+npm install vue-resorce --save
+```
+
+### 引用
+
+一定要记住，在引用插件时，一定要放在主程序之后
+
+```html
+<script src="./lib/vue-2.4.0.js"></script>
+<script src="./lib/vue-resource-1.3.4.js"></script>
+```
+
+### 用法
+
+http服务可以在全局`Vue.http`或Vue实例中使用`this.$http`
+
+```js
+//Vue实例中使用
+this.$http.get('url地址', [配置]).then(successCallback, errorCallback);
+//全局使用
+Vue.http.get('url地址', [配置]).then(successCallback, errorCallback);
+```
+
+方法列表
+
+- `get(url, [config])`
+- `head(url, [config])`
+- `delete(url, [config])`
+- `jsonp(url, [config])`
+- `post(url, [body], [config])`
+- `put(url, [body], [config])`
+- `patch(url, [body], [config])`
+
+如果你想了解更多的细节就可以在 npm 上看 vue-resource (<https://www.npmjs.com/package/vue-resource>)，它的文档写的非常清楚

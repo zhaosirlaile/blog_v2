@@ -1,0 +1,119 @@
+## 命令模式是什么
+
+在 JavaScript 中 命令模式是一种隐性的模式
+
+- 种情况为发出者直接作用于执行者，这样耦合度很高，另外一种情况为，在发出者和执行者之间增加一个用存储命令的命令访问库也即命令命令模式。
+- 可以死使得请求发送者和请求接收者之间能够消除彼此之间的解耦关系
+- 不要随便使用这个模式
+- 一般如果我们的业务中有撤销操作、重新开始的操作，可以考虑使用这个命令，例如在下棋的时候进行的悔棋的操作，重新开始的操作可以使用这个命令
+
+## 例子
+
+模拟的是一个下棋的一些行为：
+
+```html
+<!-- 这里模拟下棋的操作，当我们点击"模拟下棋"按钮的时候，随机返回一个[1-9,1-9]的二维矩阵(字符串)，这个代表他的位置 -->
+<input type="text" id='show' value="[5,5]">   <!-- 显示矩阵的位置，默认是[5,5] -->
+<button id="createRandom">模拟下棋</button>
+<button id="button1">悔棋</button>
+<button id="button2">重新开始</button>
+<script>
+    var show = document.getElementById('show');
+    var createRandom = document.getElementById('createRandom');
+    var button1 = document.getElementById('button1');
+    var button2 = document.getElementById('button2');
+
+    var methods = {
+        createRandom: function() {
+            return  `[${parseInt( Math.random() * 10 )},${parseInt( Math.random() * 10 )}]`;
+        },
+        renew: function() {
+            return '[5,5]';
+        }
+    }
+
+    var MoveCommand = function(inputObj, methods) {
+        this.inputObj = inputObj;
+        this.methods = methods;
+        this.stepRandom = [`[5.5]`];
+    }
+    MoveCommand.prototype.execute = function() {
+        var code = this.methods.createRandom()
+        this.inputObj.value = code;
+        this.stepRandom.push(code);
+        console.log(this.stepRandom);
+    }
+    MoveCommand.prototype.repeal = function() {
+        if (this.stepRandom.length > 1) {
+            this.inputObj.value = this.stepRandom.pop();
+        } else {
+            this.inputObj.value = this.stepRandom[0];
+            alert('悔到最开始了')
+        }
+        console.log(this.stepRandom);
+    }
+    MoveCommand.prototype.renew = function() {
+        this.stepRandom = methods.renew();
+        this.inputObj.value = this.stepRandom[0];
+    }
+
+    var moveInput = new MoveCommand(show,methods);
+    createRandom.onclick = function() {
+        moveInput.execute();
+    }
+    button1.onclick = function() {
+        moveInput.repeal();
+    }
+    button2.onclick = function() {
+        moveInput.renew();
+    }
+</script>
+```
+
+其实在 JavaScript 将函数作为一等对象的语言，我们不需要将我使用的方法
+
+## 宏命令
+
+宏命令是一组命令的集合，通过执行宏命令的方式，可以一次执行一批命令。想象一下，家 里有一个万能遥控器，每天回家的时候，只要按一个特别的按钮，它就会帮我们关上房间门，顺 便打开电脑并登录 QQ。 
+
+```js
+var closeDoorCommand = {     
+    execute: function(){         
+        console.log( '关门' );     
+    } 
+}; 
+ 
+var openPcCommand = {     
+    execute: function(){         
+        console.log( '开电脑' );
+    } 
+}; 
+var openQQCommand = {     
+    execute: function(){         
+        console.log( '登录 QQ' ); 
+    } 
+};
+var MacroCommand = function(){     
+    return {         
+        commandsList: [],         
+        add: function( command ){             this.commandsList.push( command );
+                                },
+        execute: function(){             
+            for ( var i = 0, command; command = this.commandsList[ i++ ]; ){                
+                command.execute();             
+            }         
+        }     
+    } 
+}; 
+ 
+var macroCommand = MacroCommand();
+macroCommand.add( closeDoorCommand ); 
+macroCommand.add( openPcCommand ); 
+macroCommand.add( openQQCommand ); 
+
+macroCommand.execute()
+```
+
+参考资料：
+
+- JavaScript设计模式与开发实践

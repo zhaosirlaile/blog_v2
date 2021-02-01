@@ -1,0 +1,155 @@
+﻿
+今天做了一个案例：
+
+![在这里插入图片描述](http://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/20190224151000221.png)
+
+以上就是效果图！
+
+**HTML代码**：
+```
+<div class="bottom">
+   <div class="bottom-top">
+       <span>请输入玩家人数</span>
+       <input type="text" maxlength="2" value="12" id="number"> 
+       <span>玩家数量为4-18</span>
+   </div>
+   <div class="bottom-bottom">
+       <input type="button" value="－" class="minux">
+       <input type="range" id="slide" name="change" value="12" min="4" max="18" step="1" >
+       <input type="button" value="+" class="add" >
+   </div>
+</div>
+```
+
+**CSS代码**
+```
+/* sec-bottom */
+.bottom {
+    padding-top: 1.5rem;
+    margin-top: 0.5rem;
+    height: 7rem;
+    background-color: #fff; 
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    color: #f4bd55;
+    flex-direction: column;
+}
+.bottom-top  input {
+    width: 1.5rem;
+    border:none;
+    text-align: center;
+    font-size: 1.1rem;
+    color: #f4bd55;
+    border-radius: 3px;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    -ms-border-radius: 3px;
+    -o-border-radius: 3px;
+}
+.bottom-top span:first-child {
+    color: #000;
+    font-weight: 700;
+}
+.bottom-top span:last-child {
+    font-size: 0.6rem;
+}
+.bottom-bottom {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    width: 75%;
+}
+/*滑动条的代码*/
+
+/*横条样式*/
+#slide {
+    -webkit-appearance: none;/*清除系统默认样式*/
+    flex: 1;
+    height: 5px;/*横条的高度*/
+    background-color: #ffe6be;
+    outline: none;
+    cursor: pointer;
+    margin: 0 0.5rem;
+}
+/*拖动块的样式*/
+#slide::-webkit-slider-thumb {
+    -webkit-appearance: none;/*清除系统默认样式*/
+    width: 2.5575rem;
+    height: 1.52625rem;
+    background: url(../img/slide_03.png) no-repeat 0 0/cover;
+    border: none;
+    cursor: pointer;
+}
+.minux {
+    width: 1.5rem;
+    line-height: 1.5rem;
+    outline: none;
+    font-size: 1.5rem;
+    border: none;
+    color: #fab344;
+    background-color: #fff;
+    border: 1px solid #d9d9d9;
+    font-weight: 700;
+    text-align: center;
+}
+.add {
+    font-size: 1.5rem;
+    width: 1.5rem;
+    line-height: 1.5rem;
+    background: #fff;
+    outline: none;
+    text-align: center;
+    font-weight: 700;
+    border: none;
+    color: #fab344;
+    border: 1px solid #d9d9d9;
+}
+/*滑动条的代码*/
+/* sec-bottom */
+```
+**JS 代码**：
+```
+let myNumber = document.getElementById('number');
+myNumber.oninput = function () {
+    if (myNumber.value >=4 && myNumber.value <= 18 ) {
+       slide.value = myNumber.value; 
+    }
+}
+
+
+
+// 杀手与平民的配比
+var slide = document.getElementById("slide");
+slide.oninput = function () {
+    if (slide.value >= 4 && slide.value <= 18) {
+        myNumber.value=slide.value;
+    }
+}
+//减号按钮与滚动条同步
+let minux = document.getElementsByClassName('minux')[0];
+minux.onclick = function () {
+    if (slide.value > 4 && myNumber.value > 4) {
+        slide.value --;
+        myNumber.value --;
+    }
+}
+//加号按钮与滚动条同步
+let add = document.getElementsByClassName('add')[0];
+add.onclick = function () {
+    if (slide.value < 18 && myNumber.value < 18) {
+        slide.value ++;
+        myNumber.value ++;
+    }
+}
+//滑动条的代码
+```
+
+以上运用的 HTML5 实现滑块------type="range"属性
+
+
+
+
+
+
+写作事件2019年2月24日15:23:25

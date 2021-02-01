@@ -1,0 +1,441 @@
+上一小节我简单介绍了 webpack 的一些用法，它的核心用法我还没有介绍，webpack 默认只会对 js 的一些代码进行打包，不可以对 css 样式进行打包，或把二进制图片打包成 data URL，热更新
+
+## Loader
+
+### 介绍
+
+loader 用于对模块的源代码进行转换。例如：typescript 转换成 js，less 转换为 css 等。
+
+### 使用
+
+webpack 4.x 有三种使用 loader 的方式：
+
+- **配置（推荐）** ：在 webpack.config.js 文件中指定 loader。
+- **内联** ：在每个 import 语句中显式指定 loader。
+- **CLI** ：在 shell 命令中指定它们。
+
+> 注：下面我会以配置的方式为例子，如果想了解其他两种方式的用法可以看一下官方的文档：https://www.webpackjs.com/concepts/loaders/
+
+```js
+const path = require('path');
+
+module.exports = {
+    mode: 'development',
+    entry: './src/index.js',
+    module: {
+        rules: [{
+            test: /\.jpg$/,
+            use: {
+                loader: 'file-loader'
+            }
+        }]
+    },
+    output: {
+        filename: 'main.js',
+        path: path.join(__dirname, 'dist'),
+    }
+}
+```
+
+和上一章的代码相比，我只添加了 `module` 这一项，那这个 `module` 是什么意思呢？
+
+`module` 中可以配置一些 **loader** 和 **plugins** 中，可以理解成 **当 webpack 4.x 不知道如何打包文件时，它会在 module 配置的 规则 和 插件中寻找解决方法**
+
+`loader` 写在 **rules** 中，**rules** 是一个数组，其中的每一个对象基本是需要一个 **test** 和 **use** ， **test** 是一个正则表达式，用来匹配文件后缀名。 **use** 中就填写你要使用到的 **loader** 名称。
+
+`file-loader` 是一个处理二进制文件，默认情况下，生成的文件的文件名就是文件内容的 MD5 哈希值并会保留所引用资源的原始扩展名。如果你不满足于默认的文件名，你可以通过 **options** 中的 **name** 进行占位符配置文件名，这是链接：https://www.webpackjs.com/loaders/file-loader/。如果你对打包生成的文件路径不满，可以通过 **outputpath** 进行配置。
+
+> 和 **file-loader** 类似的 loader 是 **url-loader** ，它可以将 二进制图片 直接转换为 `base64` , 这个虽然可以带来请求的减少，但同时也会增加打包文件的体积。尤其是一个很大很大的图片的时候，这个问题尤其突出。所以最好是对文件的大小进行限制，通过 **option** 中的 **limit** （单位：byte） ，例如 `limit: 2048` 表示 小于 2kb 则按照 **url-loader** 打包，超出了就会按照 **file-loader** 来打包。可以参见：https://www.webpackjs.com/loaders/url-loader/
+
+**打包CSS样式表**
+
+> 打包 CSS 样式表需要安装 `style-loader` 、 `css-loader` 
+
+```js
+npm i style-loader css-loader -D
+```
+
+webpack.config.js 文件的代码如下：
+
+```js
+    .
+    .
+    .
+
+    module: {
+        rules: [
+            .
+            .
+            .
+
+            {
+                test: /\.css$/,
+                use: ['style-loader','css-loader'],
+            }
+
+            .
+            .
+            .
+        ]
+    }
+
+    .
+    .
+    .
+}
+```
+
+> 注意：这两个的顺序必须是 `style-loader` 在前， `css-loader` 在后，不可颠倒
+
+- **css-loader** ：用来解析样式表中用到的外部引用，例如：`@import` 和 `url()` ，
+- **style-loader** : 就是将 `css-loader` 分享出的样式挂载到头部（header区域）
+
+> `css-loader` 有很多其他的特性，例如二次加载，模块化css
+
+```js
+    .
+    .
+    .
+
+    {
+        test: /\.css$/,
+        use: [
+            'style-loader',
+            {
+                loader: 'css-loader',
+                importLoaders: 2,
+                modules: true,
+            }
+        ],
+    }
+
+    .
+    .
+    .
+```
+
+其中 `modules` 表示启动 css 模块化，`importLoaders` 表示二次加载，那这个二次加载什么意思呢？可以理解成当确保无论这么加载都会将按照配置的loader顺序加载一遍，不会缺省loader，
+
+**less、scss 的使用**
+
+使用 less 和 sass 很简单，这里我以 `less-loader` 为例：
+
+先安装：
+
+```shell
+npm i less-loader less -D
+```
+
+webpack.config.js
+
+```js
+    .
+    .
+    .
+
+    {
+        test: /\.css$/,
+        use: ['style-loader','css-loader','less-loader'],
+    }
+
+    .
+    .
+    .
+```
+
+less-loader 的作用就是帮助我们把它翻译成我们看得懂的 css 样式表
+
+学习 `less-loader` 配置，参见：https://www.webpackjs.com/loaders/less-loader/
+
+学习 `sass-loader` 配置，参见：https://www.webpackjs.com/loaders/sass-loader/
+
+**给样式加上厂商前缀**
+
+给样式加上厂商前缀需要使用 `postcss-loader` 
+
+安装：
+
+```shell
+npm i -D postcss-loader
+```
+
+使用它需要创建一个 postcss.config.js 的配置文件，配置参见：https://www.webpackjs.com/loaders/postcss-loader/
+
+我先安装一个 `autoprefixer` 的插件
+
+```shell
+npm i -D autoprefixer
+```
+
+postcss.config.js：
+
+```js
+module.exports = {
+    plugins: [
+        require('autoprefixer')
+    ]
+}
+```
+
+webpack.config.js：
+
+```js
+    {
+        test: /\.less$/,
+        use: [
+            'style-loader',
+            'css-loader', 
+            'less-loader', 
+            'postcss-loader'
+        ],
+    },
+```
+
+**打包字体图片**
+
+使用字体图片只需使用 `file-loader` 就行了
+
+```js
+    {
+        test: /\.(eot|ttf|svg)$/,
+        use: ['file-loader'],
+    },
+```
+
+## 插件
+
+### 介绍
+
+它很像 vue,react 的生命周期函数，可以在 webpack 运行到某个时刻的时候，帮你做一些事情
+
+### 使用
+
+下面我以 **htmlWebapckPlugin** 作为例子：
+
+**安装**：
+
+```shell
+npm i html-webpack-plugin -D
+```
+
+**使用**：
+
+```js
+module.exports = {
+    mode: 'development',
+    entry: './src/index.js',
+    // 
+    plugins: [new HtmlWebpackPlugin({
+        template: 'src/template.html',
+    })],
+    // 可以使用模板进行打包
+    output: {
+        filename: 'main.js',
+        path: path.join(__dirname, 'dist'),
+    }
+}
+```
+
+> htmlWebpackPlugin 会在打包结束后，自动生成一个html文件，并把打包生成的js自动引入到这个html文件中，使用模板可以安装你的方式进行打包
+
+## devtool
+
+### 介绍
+
+主要是当我们源代码错误时，可以根据控制台输出的错误信息来定位我们到底是哪里出错了。这个功能很有用
+
+可以参考：https://www.webpackjs.com/configuration/devtool/ 的表格，哪里有很多配置项。
+
+> 默认是 `devtool: 'none'`，当我们在生产时一般我们使用 `cheap-module-eval-source-map`，线上的时候一般使用 `cheap-module-source-map`
+
+虽然有很多配置项，但我们还是可以总结出一些规律：
+
+- **souce-map** ：生成一个 `.map.js` 的映射文件
+- **inline** ：把 `.map.js` 的内容打包合并到我们输出文件中
+- **cheap** ： 表示只提示哪一行出错，不精确到哪一个字符，只提示业务中出现错误的代码，不提示用到的第三方的错误的代码
+- **module** ：会提示第三方的错误代码
+- **eval** ：会用到 `eval()` 这种方式打包
+
+## 自动监听并保存代码
+
+两种方式都要使用 package.js 文件的 script：
+
+### 第一种（webpack）
+
+```json
+  "scripts": {
+    "build": "webpack --watch"
+  },
+```
+
+不能使用ajax
+
+### 第二种（使用 webpack-dev-server 推荐）
+
+不仅可以自动打包，还可以自动刷新浏览器
+
+webpack.config.js ：
+
+```js
+module.exports = {
+    mode: 'development',
+    devtool: 'cheap-module-eval-source-map',
+    entry: {
+        main: './src/index.js',
+    },
+    devServer: {
+        contentBase: './dist',
+        open: true,
+        proxy: {
+            'api' :  'http://localhost:3000'
+        }
+    },
+
+    .
+    .
+    .
+}
+```
+
+其中：
+
+- **contentBase** ：表示开启服务器的路径，默认自动打开 `index.html` 
+- **open** ：开启服务器时，自动打开浏览器
+- **proxy** ：跨域代理
+
+配置了这些还需要在 `package.json` 中使用 `script` 添加一项：
+
+```js
+  "scripts": {
+    "start": "webpack-dev-server"
+  },
+```
+
+其实我们可以不配置上面的东西，仅仅借用 `script` 就可以实现，这种方式更简单：
+
+```js
+  "scripts": {
+    "dev": "webpack-dev-server --open --port 3000 --contentBase dist"
+  },
+```
+
+为什么我们一定要使用服务器的方式打开文件呢？现在的项目中都会跨域使用ajax发起跨域请求。如果以 `file:` 的方式打开的文件是不可以发出ajax请求的，会报错。
+
+## 开启热更新
+
+webpack.config.js ：
+
+```js
+module.exports = {
+    .
+    .
+    .
+
+    devServer: {
+        contentBase: './dist',
+        open: true,
+        hot: true,
+        hotOnly: true,
+    },
+
+    .
+    .
+    .
+}
+```
+
+## 使用 BABLE 写 ES6
+
+### 介绍
+
+babel 可以将 ES6 的语法转换成 ES5 的语法
+
+### 安装
+
+**第一种：polyfill 打包业务中使用**
+
+会污染全局作用域
+
+```shell
+npm install --save-dev babel-loader @babel/core
+npm install @babel/preset-env --save-dev
+npm install --save @babel/polyfill
+```
+
+@babel/core 是一个 babel 的核心库，就是用于语法转换的
+
+**第二种：transform-runtime 打包库文件中使用**
+
+以闭包的形式保护了作用域
+
+```shell
+npm install --save-dev @babel/plugin-transform-runtime
+npm install --save @babel/runtime
+npm install --save @babel/runtime-corejs2
+```
+
+### 使用
+
+webpack.config.js：
+
+**第一种：polyfill 打包业务中使用**
+
+```js
+const path = require('path');
+
+module.exports = {
+    //...
+    module: {
+        rules: [
+            { 
+                test: /\.js$/,
+                exclude: /node_modules/,
+                loader: "babel-loader" ,
+                options: {
+                    "presets": [["@babel/preset-env",{
+                        useBuiltIns: 'usage'
+                    }]]
+                },
+            },
+        ]
+    },
+    //...
+}
+```
+
+配置完后，还要在输入的主文件中的第一行导入 `import "@babel/polyfill"`，如果配置了 `useBuiltIns: 'usage'` ，`@babel/polyfill` 会自动导入，所以可以不用导入
+
+**第二种：transform-runtime 打包库文件中使用**
+
+```js
+const path = require('path');
+
+module.exports = {
+    //...
+    module: {
+        rules: [
+            { 
+                test: /\.js$/,
+                exclude: /node_modules/,
+                loader: "babel-loader" ,
+                options: {
+                    "plugins": [
+                        [
+                          "@babel/plugin-transform-runtime",
+                          {
+                            "corejs": 2,
+                            "helpers": true,
+                            "regenerator": true,
+                            "useESModules": false,
+                          }
+                        ]
+                      ]
+                },
+            },
+        ]
+    },
+    //...
+}
+```
+
+如果你感觉 **option** 中的代码比较长，可以创建一个 `.babelrc` 的文件，将 **option** 中的代码复制到 `.babelrc` 中就行了，不能有注释

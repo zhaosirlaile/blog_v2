@@ -1,0 +1,410 @@
+想实现更小的打包内容。
+
+## Tree Shaking
+
+### 介绍
+
+> webpack 2.0 之后开始提供；Tree Shaking 只支持 `ES Module（import） 的引入`
+
+具体什么意思呢？如果你想导入一个 `.js` 文件（多个方法）中的一个方法。webpack 默认会将这个文件中的所有代码都打包，这就不是我想要的，我要的是我导入那个就给我打包那个方法，所以我们需要借用 `Tree Shaking` 。
+
+### 使用
+
+webpack.config.js 代码：
+
+```js
+const path = require('path');
+
+module.exports = {
+    // ...
+    optimization: {
+        usedExports: true,
+    },
+    // ...
+}
+```
+
+package.json :
+
+```json
+{
+  //...
+  "sideEffects": ["*.css"],
+  // ...
+}
+```
+
+为何 `package.json` 中要配置这个 `"sideEffects": ["*.css"]` 呢？那是因为如果想打包类型 `import '*.css'` 之类的文件，`Tree Shaking` 可能会因为没有明确的导入方式会忽略这个导入的文件，如果想按照原来的方式进行导入就需要在 `package.json` 配置这个 **sideEffects** 。
+
+> 注意：`development` 环境下导入文件还是会全部导入；但是在 `production` 中会生效，并且配置了 `devtool: 'cheap-module-source-map'` 会默认配置 `Tree Shaking` 你可以不用配置，但是 `package.json` 中的 `sideEffects` 需要配置。
+
+## production 与 development 的技巧
+
+在一个很完整的项目中一般会有一个 `build` 的文件夹，里面有三个主要的文件：`webpack.dev.js` 、 `webpack.prod.js` 、 `webpack.common.js` ，其中 `webpack.dev.js` 表示在 **development** 下的 webpack 配置，`webpack.prod.js` 表示在 **production** 下的 webpack 配置，而 `webpack.common.js` 中的代码就是前面两个文件的共同部分，这个需要配合使用 `webpack-merge` 第三方模块。如果你不需要使用 `webpack.common.js` 的话，那就另外两个文件各写各的。6
+
+另外，还要在 `package.json` 的 `script`中写上 ：
+
+```json
+"dev": "webpack-dev-server --config ./build/webpack.dev.js",
+"build": "webpack --config ./build/webpack.prod.js"
+```
+
+> `webpack --config 文件路径` 表示以该文件来打包（不默认使用 webpack.config.js）
+
+## Code Splitting （代码分割）
+
+### 介绍
+
+当打包的文件体积比较大时（200 MB），加载会很慢的。一般进行代码分割都是将 **代码公共部分**（第三方库，自己封装的公共组件） 进行分割，为什么这样呢？
+
+> 当我改变我的代码时，重新进行打包，**业务代码** 会进行改变，但是我的 **第三方库** 不会改变。在进行上线操作时 **第三方库** 会被缓存在用户本地，而 **业务代码** 会增加被重新加载，进而会使加载速度变快。
+
+代码分割虽然好，但是也还是要分清如何使用，最好是一个第三库体积大才进行代码分割，体积小的就不用了使用了
+
+### 使用
+
+#### 手动实现代码分割
+
+例如我们将第三方库 `axios` 和我的其他代码进行分割：
+
+在 `src` 中新建一个 `axios.js` 的文件，代码如下：
+
+```js
+import Axios from 'axios';
+
+window.Axios = Axios;
+```
+
+`webpack.config.js` 中的 `entry` 代码：
+
+```js
+    entry: {
+        axios: './src/axios.js',
+        main: './src/index.js',
+    },
+```
+
+现在就可以在 `index.js` 中随便使用了。
+
+#### webpack 代码分割
+
+webpack.config.js 代码如下：
+
+```js
+    // ...
+    optimization: {
+        splitChunks: {
+            chunks: 'all',
+        },
+    },
+    // ...
+```
+
+这样，webpack 就启动了代码分割。
+
+> 注意：这是同步的
+
+那异步的是怎么弄得呢？其实你不需要去配置，当你异步（**import**）导入文件时，webpack 会自动的将你异步导入文件进行代码分割，文件名默认是 `n.js` (n = 0、1、2、3 ...) 。
+
+> 导入异步文件的时候可能会报错，需要安装一个 babel 插件：`@babel/plugin-syntax-dynamic-import`
+
+```shell
+npm i -D @babel/plugin-syntax-dynamic-import
+```
+
+还需要在 `.babelrc` 中的 `plugins` 配置：
+
+```json
+{
+    "presets": [["@babel/preset-env",{
+        "useBuiltIns": "usage"
+    }]],
+    "plugins": ["@babel/plugin-syntax-dynamic-import"]
+}
+```
+
+在 `index.js` 中就可以异步导入文件了：
+
+```js
+function getAxios() {
+    return import('axios').then(({default:axios}) => {
+        console.log(axios);
+		return '执行完毕'
+    })
+}
+getAxios().then(str => {
+    console.log(str)
+})
+```
+
+如果你想要改变默认的文件名可以使用刚刚安装 **babel** 组件中的 **魔法注释**，其实也很方便：
+
+```js
+function getAxios() {
+    return import(/* webpackChunkName:"axios" */'axios').then(({default:axios}) => {
+        console.log(axios);
+		return '执行完毕'
+    })
+}
+getAxios().then(str => {
+    console.log(str)
+})
+```
+
+在你导入文件名的前方安装上面的写就行了，但是文件名的前面还是会有 **vendors~**，如果想要去掉，就需要学习下面这个插件了
+
+## SplitChunksPlugin
+
+**Code Splitting** 底层借用了 **SplitChunksPlugin** . 所以我们最好还是学习一点
+
+如果你默认没有配置 `optimization.splitChunks` ，那就会默认按照以下形式配置：
+
+```js
+    // ...
+    splitChunks: {
+        chunks: "async",
+        minSize: 30000,
+        minChunks: 1,
+        maxAsyncRequests: 5,
+        maxInitialRequests: 3,
+        automaticNameDelimiter: '~',
+        name: true,
+        cacheGroups: {
+            vendors: {
+                test: /[\\/]node_modules[\\/]/,
+                priority: -10
+            },
+        	default: {
+                minChunks: 2,
+                priority: -20,
+                reuseExistingChunk: true
+            }
+        }
+    }
+    // ...
+```
+
+其中的参数有什么含义呢？
+
+- **chunks** ：`import` 导入方式来进行代码分割（配合 **cacheGroups** 使用）
+
+  - **async** ：异步导入
+  - **initial** ：同步导入 
+  - **all** ：所有（包含异步和同步）
+
+- **minSize** ：导入文件的最小空间，字节为单位。文件小于 minSize 就会合并在 `main.js` 中
+
+- **minChunks** ：表示导入( import )最少多少次。如果是 `2` 就表示项目中最少导入2次才可以进行代码分割
+
+- **maxAsyncRequests** ：项目中最多包含多少个请求（异步文件）（`最好不要动`）
+
+- **maxInitialRequests** ：表示主文件中最多包含多少个请求（文件）（`最好不要动`）
+
+- **automaticNameDelimiter** ：表示文件**连接符**
+
+- **name** ：文件名是否有效
+
+- **cacheGroups** ：**缓存组**，配合 **chunks** 来进行代码分割，其中 `vendors` 什么意思呢？其实就是一个组，当你配置了这个组的话，它会在你的**文件名**前面添加一个 `vendos~`，并且其中 `test` 匹配导入文件的目录，在这里体现为匹配目录名为 `node_modules` 中的文件。
+  如果你不想要组的话（文件名前面不要 `vendos~`）
+
+  ```js
+  // ...
+  splitChunks: {
+      //...
+      cacheGroups: {
+          vendors: false,
+          default: false,
+      }
+   },
+   // ...
+  ```
+
+  `vendors`和`default`中的**priority**表示的是**优先级**，它会按照谁的优先级大谁就会先进行匹配，匹配不了就会进入下一个，直到 `defalut`
+
+  **default** 表示当打包的文件不满足其他组时，它会默认按照自己的方式进行打包
+
+  **reuseExistingChunk** 表示当之前已经打包过了文件，后来又打包的话，会忽略此文件，引用之前打包好的文件
+
+可以查看官方文档深入学习：<https://www.webpackjs.com/plugins/split-chunks-plugin/>
+
+
+
+## 懒加载文件
+
+这个功能其实就是异步加载文件，只不过是我们想要加载文件的时候才进行加载
+
+```js
+function getComponent() {
+    return import(/* webpackChunkName:"lodash" */ 'lodash').then(({default:_}) => {
+        var element = document.createElement('div');
+        element.innerHTML = _.join(['Dell','Lee'],'-');
+        return element;
+    })
+}
+
+document.addEventListener('click',() => {
+    getComponent().then(element => {
+        document.body.appendChild(element);
+    })
+})
+
+```
+
+打开文件文件时：
+
+![1583570093557](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1583570093557.png)
+
+点击了页面后：
+
+![1583570135771](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1583570135771.png)
+
+> 要实现这个功能，需要进行代码分割，不会的可以看一下前面的介绍
+
+
+
+> **chunk** 是什么呢？其实就是 webpack 自己规定的，main.js(默认打包的文件) 是 chunk，其他的打包生成的文件也是 **chunk** ![1583570632314](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1583570632314.png)
+>
+> 只需要记住了，打包生成的文件都是 **chunk**
+
+
+
+## 打包分析
+
+进入：<https://github.com/webpack/analyse>，README 中讲 `webpack --profile --json > stats.json` 加入到  **scripts** 中：
+
+```js
+"scripts": {
+    "build": "webpack --profile --json > stats.json --config ./build/webpack.prod.js"
+},
+```
+
+运行之后，会在项目跟目录中生成一个 `stats.josn` 的文件，这个文件使用来描述项目的打包过程
+
+进入<http://webpack.github.io/analyse/> ，将 `stats.json ` 上传上去，就会有一个图表形式的来展示上面的信息，当然这样的工具不仅仅知有一个，你可以查看 <https://www.webpackjs.com/guides/code-splitting/#bundle-%E5%88%86%E6%9E%90-bundle-analysis->，这上面有很多工具
+
+## Prefetching/Preloading
+
+### 介绍
+
+这两个主要是用来提示代码的利用率，进而提示性能。还记得 webpack 默认的打包模式是 **async** 吗？为什么？因为 webpack 认为同步打包是不会真正提升代码性能，仅仅只是利用了浏览器缓存的功能。那如何提示代码性能呢?就是通过**异步导入文件**的方式，凡是页面加载不能马上被使用的代码，其实可以将这些代码放在一个文件中，要使用的时候在 **异步导入**，这就又有一个问题？当我们进行交互时，文件越大，可能会导致 **异步加载** 文件使得用户体验不好。那怎么解决这个问题呢？就是使用 **Prefetching/Preloading** 就行了，它就是当用户空闲的使用在偷偷加载文件，这样就很完美的解决了这个问题。
+
+### 使用
+
+在你异步导入文件（使用 import）时，前面加上 `/* webpackPrefetch: true */`：
+
+```js
+import(/* webpackPrefetch: true */ 'LoginModal');
+```
+
+那他们有上面区别呢：
+
+**Prefetching** 会在主文件加载之后的时候进行加载，而 **Preloading** 会在主文件一同加载。所以还是应该使用 **Prefetching** 
+
+想深入学习：<https://webpack.js.org/guides/code-splitting/#prefetchingpreloading-modules>
+
+
+
+## 对 CSS 文件进行分割
+
+这里需要借助一个插件 `mini-css-extract-plugin`，来实现css代码分割
+
+### 安装
+
+```shell
+npm install --save-dev mini-css-extract-plugin
+```
+
+### 配置
+
+之前使用过的 `style-loader` 需要替换成 `MiniCssExtractPlugin.loader`
+
+```js
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+
+module.exports = {
+  plugins: [new MiniCssExtractPlugin()],
+  module: {
+    rules: [
+      {
+        test: /\.css$/i,
+        use: [MiniCssExtractPlugin.loader, 'css-loader'],
+      },
+    ],
+  },
+};
+```
+
+还有记得在 `package.json` 中配置 `"sideEffects": ["*.css"]`，防止在使用 Tree shaking 时的打包忽略
+
+> 这个插件打包出来的文件没有压缩过，所以如果想要打包出来的文件压缩过，需要你是使用一个插件 `optimize-css-assets-webpack-plugin`，想要了解这个插件可以查看：<https://github.com/NMFR/optimize-css-assets-webpack-plugin>
+
+**webpack.config.js**
+
+```js
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
+
+module.exports = {
+  plugins: [new MiniCssExtractPlugin()],
+  optimization: {
+      minimizer: [new OptimizeCSSAssetsPlugin({})]
+  },
+  module: {
+    rules: [
+      {
+        test: /\.css$/i,
+        use: [MiniCssExtractPlugin.loader, 'css-loader'],
+      },
+    ],
+  },
+};
+```
+
+想要深入学习：<https://webpack.js.org/plugins/mini-css-extract-plugin/#root>
+
+## 缓存(cache)
+
+这里的 **缓存** 指的是 **浏览器缓存**，通过什么方式使浏览器来辨别该不该从 **浏览器发送** 请求获取文件，而不是通过从 **浏览器缓存** 获取文件。其实就是计算文件的 **hash** 值，通过 **hash** 值的不同来获取文件。其实则是一个小技巧
+
+```js
+module.exports = {
+    output: {
+        filename: '[name].[contenthash].js',
+        chunkFilename: '[name].[contenthash].chunk.js',
+    }
+};
+```
+
+通过 `contenthash` webpack 会自动的计算文件的 `hash` 值，并把他们体现在 **文件名** 上。这样就可以很完美的解决这个问题
+
+> 还有注意：如果你是用的 **老版本** 的 webpack ，还要在 `optimization` 中配置 `runtimeChunk:{name: 'runtime'}`
+
+
+
+## Shimming
+
+### 介绍
+
+在使用 jquery 及其依赖的库的使用，通常需要先引入 jquery，然后在引用依赖库。在 webpack 中 这种使用方法是错误的，因为 import 这种引入方式是**模块**。为了解决这个问题可以使用 shimming 全局变量
+
+### 配置
+
+webpack.config.js：
+
+```js
+const webpack = require('webpack');
+
+module.exports = {
+    plugins: [
+        new webpack.ProvidePlugin({
+        	$: 'jquery'
+        })
+    ]
+};
+```
+
+使用 `webpack.ProvidePlugin`帮助我们。它就是检查到你的文件中有 `$` 就会在代码最前面自动帮你引入
+
+
+
+可以查看：<https://www.webpackjs.com/guides/shimming/>

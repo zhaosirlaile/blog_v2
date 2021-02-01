@@ -1,0 +1,211 @@
+这一小节，主要是把异常的处理加上
+
+## 处理错误
+
+### 网络错误
+
+就在你发送 Ajax 请求的地方，new 出来的 XMLHttpRequest 有一个 `onerror` 的方法，把你的方法挂上去就可以了。
+
+```typescript
+request.onerror = function handleError() {
+    reject(new Error('Network Error'));
+} 
+```
+
+### 超时错误
+
+同样的，在new 出来的 XMLHttpRequest 有一个 `ontimeout` 的方法，把你的方法挂上去就可以了。
+
+```typescript
+if(timeout) request.timeout = timeout;	// timeout 是可选的
+
+request.ontimeout = function handleTimeout() {
+    reject(new Error(`Timeout of ${timeout} ms exceeded`));
+}
+```
+
+### 其他错误
+
+response.status 在 [200,300) 之间，就表明请求成功，否则就表示错误。以下这个函数是放在 `onreadystatechange` 函数的最后来进行处理。
+
+```typescript
+function handleResponse(response: AxiosResponse) : void{
+    if(response.status >= 200 && response.status < 300) {
+    	reslove(response);
+    } else {
+    	reject(new Error(`Request failed with status code ${response.status}`));
+    }
+}
+```
+
+### 更加详尽的错误信息
+
+这个其实就是构造函数
+
+```typescript
+import {AxiosRequestConfig,AxiosResponse} from '../types';
+
+export class AxiosError extends Error {
+    isAxiosError: boolean
+    config: AxiosRequestConfig
+    code?: string|null
+    request?:any
+    response?:AxiosResponse
+    constructor(
+        message:string,
+        config:AxiosRequestConfig,
+        code?: string|null,
+        request?:any,
+        response?: AxiosResponse,
+
+    ){
+        super(message);
+        this.config = config;
+        this.code = code;
+        this.request = request;
+        this.response = response;
+        this.isAxiosError = true;
+        Object.setPrototypeOf(this,AxiosError.prototype);
+    }
+}
+
+export function createError(
+    message:string,
+    config:AxiosRequestConfig,
+    code?: string|null,
+    request?:any,
+    response?: AxiosResponse,
+) {
+    return new AxiosError(message,config,code,request,response);
+}
+```
+
+在之前使用 new Error() 的，都改成 `createError` 函数
+
+完整的代码，这里只写一些改变了的代码，按照之前的目录结构，我会在 `helpers` 中新建立一个 `error.ts` 文件
+
+```typescript
+import {AxiosRequestConfig,AxiosResponse} from '../types';
+
+export class AxiosError extends Error {
+    isAxiosError: boolean
+    config: AxiosRequestConfig
+    code?: string|null
+    request?:any
+    response?:AxiosResponse
+    constructor(
+        message:string,
+        config:AxiosRequestConfig,
+        code?: string|null,
+        request?:any,
+        response?: AxiosResponse,
+
+    ){
+        super(message);
+        this.config = config;
+        this.code = code;
+        this.request = request;
+        this.response = response;
+        this.isAxiosError = true;
+        Object.setPrototypeOf(this,AxiosError.prototype);
+    }
+}
+
+
+export function createError(
+    message:string,
+    config:AxiosRequestConfig,
+    code?: string|null,
+    request?:any,
+    response?: AxiosResponse,
+) {
+    return new AxiosError(message,config,code,request,response);
+}
+```
+
+`types/index.ts` 中就添加了一个结构 `AxiosError` ：
+
+```typescript
+/...
+export interface AxiosError extends Error {
+    isAxiosError: boolean,
+    config: AxiosRequestConfig,
+    code?: string | null,
+    request?:any;
+    response?:AxiosResponse,
+}
+```
+
+还有  `xhr.ts` 改变过：
+
+```typescript
+import {AxiosRequestConfig,AxiosPromise,AxiosResponse} from './types';
+import {parseHeaders} from './helpers/header';
+import {createError} from './helpers/error';
+
+export default function xhr(config:AxiosRequestConfig) : AxiosPromise {
+    return new Promise((reslove,reject)=> {
+        const {data = null,url,method='get',timeout,headers,responseType} = config;
+        const request = new XMLHttpRequest();
+        
+        if(responseType) request.responseType = responseType;
+
+        // 超时操作
+        if(timeout) request.timeout = timeout;
+    
+        request.onreadystatechange = function handleLoad() {
+            if(request.readyState !== 4) {
+                return;
+            }
+
+            if(request.status === 0) {
+                // 网络错误和超时错误时 status为 0
+                return;
+            }
+
+            const responseHeaders = request.getAllResponseHeaders();
+            const responseDate = responseType !== 'text' ? request.response : request.responseText;
+            const response:AxiosPromise = {
+                data:responseDate,
+                status:request.status,
+                statusText: request.statusText,
+                headers: parseHeaders(responseHeaders),
+                config,
+                request,
+            }
+            handleResponse(response);
+        }
+
+        request.open(method.toUpperCase(),url,true);
+// 错误开始        
+        // 请求错误
+        request.onerror = function handleError() {
+            reject(createError('Network Error',config,null,request));
+        } 
+        // 超时错误
+        request.ontimeout = function handleTimeout() {
+            reject(createError(`Timeout of ${timeout} ms exceeded`,config,'ECONNABORTED',request));
+        }
+// 错误结束        
+        Object.keys(headers).forEach((name) => {
+            if(data === null && name.toLocaleLowerCase() === 'content-type') {
+                delete headers[name];
+            }
+            request.setRequestHeader(name,headers[name]);
+        })
+
+        request.send(data);
+
+        function handleResponse(response: AxiosResponse) : void{
+            if(response.status >= 200 && response.status < 300) {
+                reslove(response);
+            } else {
+                reject(createError(`Request failed with status code ${response.status}`,config,null,request,response));
+            }
+        }
+    })
+
+}
+```
+
+现在就没有了，就到这里，之后会就是用这个 axios 方法来扩展一些方法，例如 `axios.get` 等。

@@ -1,0 +1,51 @@
+﻿## 什么是防抖（debounce）
+
+定义：当调用动作触发一段事件后，才会执行该动作，若在这段时间间隔内又调用此动作则将重新计算时间间隔
+
+> 举一个例子：例如在注册账号时，肯定不能用户每输入一个字符就检查邮箱是否正确，我们应该是等待用户停止输入，比如过了500ms用户都没有再输入，那么就检查此时的邮箱地址格式是否正确，这就是防抖
+
+## 代码展示
+
+```javascript
+function debounce(fn,delay) {
+    let id;
+    return function() {
+        clearTimeout(id);
+        id = setTimeout(()=>{
+            fn()
+        }, delay);
+    }
+};
+```
+
+这是核心代码：其中这里运用到了闭包，主要目的是把 `id` 变成一个静态变量，不会随着函数的结束而消失，反而当我们执行代码的时候，它会记住上一次 `setTimeout` 的编号，如果用户恶意的点击按钮就会清除掉这个编号，反之，执行该按钮对应的代码。
+
+实例：
+
+```html
+<html>
+	<head>
+		
+	</head>
+	<body>
+		<input id='n' type='button' value='点一下'>
+	<script>
+        function debounce(fn,delay) {
+            let id;
+            return function() {
+                clearTimeout(id);
+                id = setTimeout(()=>{
+                    fn()
+                }, delay);
+            }
+        };
+        function handle(){
+            console.log(1);
+        };
+        document.getElementById('n').onclick = debounce(handle,1000);
+	</script>
+	</body>
+</html>
+```
+
+该代码的执行效果就是，如果用户恶意的一直点击按钮，我们将重新计算时间间隔，但总会执行一次的

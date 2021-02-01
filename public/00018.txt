@@ -1,0 +1,91 @@
+﻿
+本来是想使用手机短信认证的方式发送验证码的，但是发现发送手机短信是需要付费的，按条算，而后就改用邮箱实现验证了
+## 首先开启邮箱的 POP3/SMTP 服务
+1. **QQ邮箱：**
+登录你的账号，点击`设置`
+![在这里插入图片描述](http://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/20190520180354310.png)
+点击`账户`
+![在这里插入图片描述](http://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/20190520180534633.png)
+向下拉，你会看到，如下图：把`POP3/SMTP`开启就可以了
+![在这里插入图片描述](http://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/20190520180807892.png)
+当我们点击开启，就会弹出
+![在这里插入图片描述](http://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/20190520181020239.png)
+按照它说的就可以获得一个授权码`（自动生成的）`，而后我们要用到这个授权码，一定要记住了，若果记不住，就拍个照保存下来看就可以了。
+
+2. 阿里云邮箱
+阿里云的邮箱获取授权码也是类似的，但它的授权码可以`自己设置`
+![在这里插入图片描述](http://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/20190520181755458.png)
+3. 网易云邮箱
+![在这里插入图片描述](http://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/20190520182201401.png)
+![在这里插入图片描述](http://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/20190520182311258.png)
+网易云的授权码也是可以自己设置的
+
+## 授权码拿来干什么的？
+一句话解释：**用于登录第三方客户端的专用密码**。
+也就是说我们可以在我们自己的程序中使用这个授权码，而这个授权码就是一个QQ邮箱给我们的凭证，我们可以不需要借用它提供的APP、网站，直接对我们想要发送的邮箱地址进行发送信息
+
+## 借用 node 中 的 nodemailer 实现邮箱验证
+### 安装
+```shell
+npm i nodemailer -s
+```
+这是 `nodemailer` 的在 npm 上的的网址：https://www.npmjs.com/package/nodemailer
+
+### 使用
+1. 我们先封装一个发送邮箱验证的模块 `(文件名为：sendmail)`
+```js
+const nodeemailer = require('nodemailer');
+const transporter = nodeemailer.createTransport({
+    host: "smtp.qq.com",						// QQ邮箱的SMTP地址
+    port: 465,									// 每个邮箱的端口号可能是一样的，一般都使用465，但有些公司使用的就不是465
+    auth: {
+        "user": 'xxxxxxxxxxxx@qq.com', 		// 你自己的邮箱的邮箱地址
+        "pass": '****************'         // 上面我们提到的授权码
+    }
+});
+module.exports.send =  (mailOptions) => {
+    transporter.sendMail(mailOptions, function(error, info){
+        if(error) {
+            return console.log(error);
+        }
+    });
+}
+```
+- SMTP：全称是“Simple Mail Transfer Protocol”，即`简单邮件传输协议`。说简单点就是专门用来发送邮件的服务器，我们填写QQ邮箱的SMTP的地址其实就是为了使用它提供的发送邮件的服务，
+- POP3："Post Office Protocol 3"的简称，即邮局协议的第3个版本,它规定怎样将个人计算机连接到Internet的邮件服务器和下载电子邮件的电子协议。说简单点就是专门拿来接收邮件的服务器
+
+主文件：`（app.js 同级目录下）`
+```js
+const sendEmail = require('./sendemail');
+let emailCode  = (function captchaNumber(){
+		            let num = [];
+		            for (let i = 0; i < 6; i++) {
+		                num[i] = parseInt(Math.random()*10);
+		            }
+		            return num.join('');
+		        })() 
+		        //随机生成6位数字
+let email = {
+        title: '某某的个人博客网站---邮箱验证码',
+        body:`
+                <h1>您好：</h1>
+                <p style="font-size: 18px;color:#000;">
+                    您的验证码为：
+                    <span style="font-size: 16px;color:#f00;"> ${ emailCode }， </span>
+                    您当前正在某某的个人博客网站注册账号，验证码告知他人将会导致数据信息被盗，请勿泄露
+                </p>
+                <p style="font-size: 1.5rem;color:#999;">60秒内有效</p>
+                `
+    }
+let emailCotent = {
+       from: 'xxxxxxxxxxxx@qq.com', // 发件人地址
+       to: 'xxxxxxxxxxxx@163.com', // 收件人地址，多个收件人可以使用逗号分隔
+       subject: email.title, // 邮件标题
+       html: email.body // 邮件内容
+   };
+sendEmail.send(emailCotent)
+```
+运行 app.js 收件人就可以收到你发送的邮件了
+
+时间：2019年5月20日18:52:55
+

@@ -1,0 +1,110 @@
+## 定义
+
+策略模式指的是定义一系列的算法，把它们一个个封装起来。将不变的部分和变化的部分隔开是每个设计模式的主题，策略模式也不例外，策略模式的目的就是将算法的使用与算法的实现分离开来。
+
+通常一个基于策略模式的程序至少由两部分组成。第一个部分是一组策略类，策略类封装了具体 的算法，并负责具体的计算过程。 第二个部分是环境类 Context，Context 接受客户的请求，随后把请求委托给某一个策略类。
+
+优点：
+
+- 策略模式利用组合、委托和多态等技术和思想，可以有效地避免多重条件选择语句。 
+- 策略模式提供了对开放—封闭原则的完美支持，将算法封装在独立的 strategy 中，使得它 们易于切换，易于理解，易于扩展。 
+- 在策略模式中利用组合和委托来让 Context拥有执行算法的能力，这也是继承的一种更轻 便的替代方案。 
+
+## 例子
+
+以下有一个例子：根据绩效的等级计算年终奖，绩效为S的人年终奖有4倍工资，绩效为A的人年终奖有3倍工资，而绩效为B的人年终奖是2倍工资
+
+### java版
+
+```js
+// 以下的都是策略(strategy)
+var performanceS =function(){};
+performanceS.prototype.calculate = function( salary ) {
+    return salary * 4;
+}
+
+var performanceA = function(){};
+performanceA.prototype.calculate = function( salary ) {
+    return salary * 3;
+}
+
+var performanceB = function(){};
+performanceB.prototype.calculate = function( salary ) {
+    return salary * 2;
+}
+
+// 以下就是环境(context)
+var Bonus = function(){
+    this.salary = null;			// 原始工资  
+    this.strategy = null;    	// 绩效等级对应的策略对象 
+};
+Bonus.prototype.setSalary = function( salary ) {
+    this.salary = salary;		 // 设置员工的原始工资 
+}
+
+Bonus.prototype.setStrategy = function( strategy ) {
+    this.strategy = strategy;		
+}
+Bonus.prototype.getBonus = function() {
+    return this.strategy.calculate( this.salary );    
+    // 把计算奖金的操作委托给对应的策略对象 
+}
+
+// 以下是实例
+var bonus = new Bonus(); 
+
+bonus.setSalary( 10000 ); 
+bonus.setStrategy( new performanceS() );  // 设置策略对象 
+
+console.log( bonus.getBonus() );    // 输出：40000     
+
+bonus.setStrategy( new performanceA() );  // 设置策略对象
+console.log( bonus.getBonus() );    // 输出：30000  
+```
+
+### JavaScript版 
+
+在 JavaScript语言的策略模式中，策略类往往被函数所代替，这时策略模式就成为一种“隐形”的模式
+
+```js
+// 以下的都是策略(strategy)
+var strategies = {     
+    "S": function( salary ){         
+        return salary * 4;     
+    },     
+    "A": function( salary ){         
+        return salary * 3;     
+    },     
+    "B": function( salary ){         
+        return salary * 2;     
+    } 
+};  
+// 以下就是环境(context)		没有改变，和上面的一样
+var Bonus = function(){
+    this.salary = null;			// 原始工资  
+    this.strategy = null;    	// 绩效等级对应的策略对象 
+};
+Bonus.prototype.setSalary = function( salary ) {
+    this.salary = salary;		 // 设置员工的原始工资 
+}
+
+Bonus.prototype.setStrategy = function( strategy ) {
+    this.strategy = strategy;		
+}
+Bonus.prototype.getBonus = function() {
+    return this.strategy.calculate( this.salary );    
+    // 把计算奖金的操作委托给对应的策略对象 
+}
+// 以下是实例
+var calculateBonus = function( level, salary ){     
+    return strategies[ level ]( salary ); 
+}; 
+ 
+console.log(calculateBonus('S', 20000));     // 输出：80000 
+console.log(calculateBonus('A', 10000));     // 输出：30000 
+```
+
+看上面的代码是不是感觉以下舒畅了，第二种（js）是比第一种（java）写着舒服
+
+记住：策略模式就是委托环境（只有一个）调用不同的策略（有多个，并且是平级的）
+

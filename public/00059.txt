@@ -1,0 +1,241 @@
+## Hook 是什么？
+
+它是一个特殊的函数，可以勾入 **React** 特性（例如：React State 、生命周期函数等）
+
+我们都了解传统的 **React** 定义组件有两种形式：其中一种为 **Class** ，因为**有**    **state** 和 **生命周期函数** 被称为 **有状态组件**；另一种为 **function** 因**没有** **state** 和 **生命周期函数** 被称为 **无状态组件**；而 **Hook** 的 推出就是为了解决 **无状态组件** 使用 state 和 生命周期函数 的问题。
+
+> 注意：Hook 不能再 class 组件中使用，但这也使得我们可以不使用 class 也能使用 React
+
+## State Hook
+
+在调用 **useState** 时，可以传入 **基础类型** 或 **引用类型** ，和 **Class** 中使用 **state** 必须是 **Object** 是不同的。
+
+调用成功后，它会返回一个 `length = 2`的数组，第一个元素就是 **state** ，第二个元素就是 **setState** ，我们可以通过 **数组结构** 的方式拿到这两个元素，进而在后续的使用过程使用后修改它们
+
+在一个组件中我们可以多次使用 **State Hook**
+
+例子：
+
+```react
+import React, { useState } from 'react';
+
+function Example() {
+  // 多个 State Hook
+  const [count, setCount] = useState(0);
+  const [fruit, setFruit] = useState('banana');
+  const [state, setState] = useState(() => {
+      axios.get(url,(res)=>{
+      	const initialState = res.data;
+      	return initialState;
+      })
+    });
+
+  return (
+    <div>
+      <p>You clicked {count} times</p>
+      <button onClick={() => setCount(count + 1)}>
+        Click me
+      </button>
+      <p>{fruit}</p>
+    </div>
+  );
+}
+```
+
+**useState** 也可以传递一个函数，其函数的返回的值会作为第一个元素 **State** 的初始状态，**后续渲染时会被忽略**。所以其实可以在这里进行 ajax 的请求
+
+## Effect Hook
+
+如何你了解 **React class** 的生命周期函数，可以把 **useEffect Hook** 看成是 `componentDidMount` 、`componentDidUpdate`  、`componentWillUnmount` 的这三个生命周期函数的组合
+
+它的**作用** ：每一次的 **state** 和 **props** 的更新都会执行 **useEffect Hook** ，其实就是调用 **useEffect** 中传递的函数
+
+我们在使用 **React** 的时候经常碰到两种操作：**需要清除的** 和 **不需要清除的**
+
+### 不需要清除的 effect
+
+比如在这个钩子中：发送网络请求，手动变更DOM，记录日志，这些不影响它者，我们就可以不用清除
+
+```react
+import React, { useState, useEffect } from 'react';
+
+function Example() {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    document.title = `You clicked ${count} times`;
+  });
+
+  return (
+    <div>
+      <p>You clicked {count} times</p>
+      <button onClick={() => setCount(count + 1)}>
+        Click me
+      </button>
+    </div>
+  );
+}
+```
+
+上面代码使用的 **useEffect** 的函数大概等同于 `React class` 中的 
+
+`componentDidMount` 和 `componentDidUpdate`  的组合 ，因为不管是第一次的挂载还是重新渲染 **useEffect** 中的代码都会更新
+
+> 注意：使用 `useEffect` 调度的 effect 不会阻塞浏览器更新屏幕，这让你的应用看起来响应更快。大多数情况下，effect 不需要同步地执行。
+
+### 需要清除的 effect
+
+比如在这个钩子中：在某个元素中监听事件，就最好取消监听，否则该元素会监听很多次，进而造成内存泄露
+
+```react
+import React,{
+    useEffect,
+    useState,
+} from 'react';
+
+const MouseTracker = () => {
+    const [positions,setPositions] = useState({x:0,y:0})
+
+    useEffect(() => {
+        console.log('add effect',positions.x);
+        const updateMouse = (e: MouseEvent) => {
+            console.log('inner')
+            setPositions({
+                x: e.clientX,
+                y: e.clientY
+            })
+        }
+        document.addEventListener('click',updateMouse);
+        return () => {
+            console.log('remove effect', positions.x);
+            document.removeEventListener('click',updateMouse);
+        }
+    })
+    return (
+        <div>
+            <p>x: {positions.x}</p>
+            <p>y: {positions.y}</p>
+        </div>
+    )
+}
+
+export default MouseTracker
+```
+
+上面代码：随意点击屏幕的任何位置返回其在浏览器的坐标。
+
+ **useEffect** 的返回值可以是一个函数，这个函数会在下次订阅的时候清除我们监听的 **click** 事件，简单来说就是我们可以通过使用这个返回的函数来进行 **消除操作**
+
+最后 **useEffect** 有两个参数，第一个是函数，第二个是一个数组。第一个参数前面已经说过了，这里重点聊一下第二个参数：该参数的作用是该组件不按照 **state** 和 **props** 来更新，而是按照我们数组中写的来更新（数组中写的也要是 **state** 和 **props** 中的）
+
+## useContext
+
+useContext 主要是在子组件需要**父父父组件**中的全局变量而使用，如果不使用这个我们需要 **父父父组件** 的变量传递给 **父父组件** ，再由 **父父组件** 传递给 **父组件** ，最后才是 **父组件** 传递给 **子组件**，这样非常的麻烦，如果是很多个子组件需要这个全局变量，会写很多个 props 。
+
+所以， 接收一个 context 对象（`React.createContext` 的返回值）并返回该 context 的当前值。当前的 context 值由上层组件中距离当前组件最近的 `<MyContext.Provider>` 的 `value` prop 决定。
+
+以下就是一个例子，子组件需要主题颜色
+
+```react
+import {useContext} from 'react';
+const themes = {
+  light: {
+    foreground: "#000000",
+    background: "#eeeeee"
+  },
+  dark: {
+    foreground: "#ffffff",
+    background: "#222222"
+  }
+};
+
+const ThemeContext = React.createContext(themes.light);
+
+function App() {
+  return (
+    <ThemeContext.Provider value={themes.dark}>
+      <Toolbar />
+    </ThemeContext.Provider>
+  );
+}
+
+function Toolbar(props) {
+  return (
+    <div>
+      <ThemedButton />
+    </div>
+  );
+}
+
+function ThemedButton() {
+  const theme = useContext(ThemeContext);  
+  return (    
+      <button 
+          style={{ background: theme.background, color: theme.foreground }}
+	  >      
+          I am styled by theme context!
+      </button>
+  );
+}
+```
+
+
+
+## 自定义 Hook
+
+当多个组件反复使用一段逻辑时，我们就可以把这段逻辑提取出来放到一个函数中。
+
+**自定义 Hook 名称** 必须以 **use** 开头，否则会报错
+
+例如在每一张网页我都要获取我的 token ，这个时候我就把他们抽取出来，弄成一个函数，
+
+定义：
+
+```react
+import React, {
+    useState,
+} from 'react';
+
+
+function getToken(){
+    var strcookie = document.cookie;//获取cookie字符串
+    var arrcookie = strcookie.split("; ");//分割
+    //遍历匹配
+    for ( var i = 0; i < arrcookie.length; i++) {
+        var arr = arrcookie[i].split("=");
+        if (arr[0] == "token"){
+            return arr[1];
+        }
+    }
+    return "";
+}
+
+const useGetToken = () => {
+    const [token, setToken] = useState(getToken())
+
+    if(token.length === 0) {
+        document.location = '/'  // 跳转到首页
+    }
+    
+    return token;
+}
+
+export default useGetToken
+```
+
+使用
+
+```react
+// 引用过来
+import useGetToken from './hook/useGetToken'
+const useGetToken = () => {
+    const token = useGetToken()
+	
+	// 这里就可以拿到 token ，可以在 useEffect 中 发送请求
+    
+    return <p>token:{token}</p>;
+}
+```
+
+可能我的例子不是特别恰当，但是意识是没有问题的
+

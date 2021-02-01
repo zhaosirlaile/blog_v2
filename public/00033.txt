@@ -1,0 +1,96 @@
+## 什么是组合模式
+
+其实在上面一篇博客中提到过一个宏命令，而这个宏命令和组合模式比较像。成一组子命令，形成一颗树型的结构（暂且这样理解），只不过组合模式更加复杂而已。
+
+图解：
+
+![1570430763917](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1570430763917.png)
+
+**注意**：
+
+- 组合模式不是**父子关系**，而是一种**聚合的关系**。组合对象把请求委托给它所包含的所有叶对象，它们能够合作的关键是拥有相同的接口
+- 组合模式除了要求组合对象和叶对象拥有相同的接口之外，还有一个必要的条件，就是对一组叶对象的操作必须具有一致性
+
+## 适合场景
+
+- 给公司所有的员工发放过节费，这个场景就可以运用组合模式
+- 但是，如果公司某个员工过生日发送一张祝贺生日的邮件，组合模式就没有什么用处
+
+个人理解：使用场景主要是集中（**对象要多**）批发处理某件事时会起到奇效
+
+## 例子
+
+像杀毒软件一样扫描文件夹：
+
+我们先定义两个类 **Folder**、**File**：
+
+```js
+// Folder 类
+var Folder = function(name) {
+    this.name = name;
+    this.files = [];
+}
+Folder.prototype.add = function(file) {
+    this.files.push(file);
+}
+Folder.prototype.scan = function(){
+    console.log("开始扫描文件夹：" + this.name);
+    for(var i = 0, file, files = this.files; file = files[i++];){
+        file.scan();
+    }
+}
+
+// File 类
+var File = function(name) {
+    this.name = name;
+}
+File.prototype.add = function() {
+    throw new Error("文件下面不能在添加文件");
+}
+File.prototype.scan = function() {
+    console.log("开始扫描文件：" + this.name);
+}
+
+```
+
+假设下面的一些文件夹和文件对象组成的树型结构，而这个树型结构就代表 F 现有的文件目录结构：
+
+```js
+var folder = new Folder('学习资料');
+var folder1 = new Folder('JavaScript');
+var folder2 = new Folder('jQuery');
+
+var file1 = new File('JavaScript 设计模式与开发实践');
+var file2 = new File('精通 jQuery');
+var file3 = new File('重构与模式');
+
+folder1.add(file1);
+folder2.add(file2);
+
+folder.add(folder1);
+folder.add(folder2);
+folder.add(file3);
+
+var folder3 = new Folder('Node.js');
+var file4 = new File('深入浅出 Node.js');
+folder3.add(file4);
+
+var file5 = new File('JavaScript 语言精髓与编程实践');
+
+folder.add(folder3);
+folder.add(file5);
+```
+
+最后扫描这个 F 盘：
+
+```js
+folder.scan();
+```
+
+在控制台中就会看到：
+
+![1570431746177](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1570431746177.png)
+
+参考资料：
+
+- JavaScript 设计模式与开发实践

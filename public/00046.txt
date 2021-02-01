@@ -1,0 +1,219 @@
+> 这一章主要是一些关于 webpack 打包组件、库的一些配置
+
+## 引入方式
+
+我们可以通过配置 webpack 来实现不同方式的引用，不管是 **import** 、**require**、**AMD方式** 引入都可以正常的引入，通过把 `libraryTarget`设置成 `umd` 就可以了
+
+webpack.config.js
+
+```js
+module.exports = {
+    entry: './src/index.js',
+    mode: 'production',
+    output: {
+        libraryTarget: 'umd',
+    }
+}
+```
+
+我们还可以通过 `<script>` 标签引入我们的代码，将 `library` 设置成 `$` (这个是可以随意定义的)，webpack 就会将 `$` 挂载在 window (全局变量) 上，通过 `$` 我们就可以使用定义的函数
+
+webpack.config.js
+
+```js
+module.exports = {
+    entry: './src/index.js',
+    mode: 'production',
+    output: {
+        libraryTarget: 'umd',
+        library: '$',
+    }
+}
+```
+
+其实 **libraryTarget** 是和 **library** 配合使用的，想了解更多的信息可以查看：<https://www.webpackjs.com/guides/author-libraries/>
+
+还有一个属性 **externals** 也是需要与上面两个属性相配合的，那它有什么用呢？如果想引用一个库，但是不想让 webpack 进行打包，就可使用这个，它并不会影响程序。这个功能主要是用在创建一个 **库** 的时候用的。
+
+webpack.config.js
+
+```js
+module.exports = {
+    externals: ["jquery"],
+}
+```
+
+```js
+module.exports = {
+    externals: {
+      "jquery": {
+      	commonjs: "$",//如果我们的库运行在Node.js环境中，必须将导入的对象名设置成:'$'
+        commonjs2: "$",//同上
+        amd: "$",//如果我们的库使用require.js等加载;
+        root: "$"//如果我们的库在浏览器中使用，需要提供一个全局的变量‘$’
+      }
+	}
+}
+```
+
+
+
+> **externals** 的值可以是对象也可以是数组
+
+## PWA
+
+全称：**Progressive Web App**，是一种渐进式增强WEB应用， 是Google 在2016年提出的概念，2017年落地的web技术。其实它对标的是移动App的开发，目的就是解决移动App开发成本高、发布到不同应用商店（还有审核，版本更新等）及兼容问题。它可以让我们通过浏览器来实现与原生应用相近的用户体验。
+
+可以使用 `workbox-webpack-plugin` 这个插件来进行打包
+
+webpack.config.js
+
+```js
+const workboxWebpackPlugin = require('workbox-webpack-plugin');
+
+module.exports = {
+    plugins:[
+        new workboxWebpackPlugin.GenerateSW({
+            clientsClaim:true,
+            skipWaiting: true,
+        })
+    ],
+}
+```
+
+大概就这么多，我也没这么用过，可以查看：<https://webpack.js.org/guides/progressive-web-application/#root>
+
+## TypeScirpt 的打包配置
+
+**TypeScirpt** 是什么？**TypeScirpt** 是JavaScript的类型化**超集**，可编译为普通JavaScript、任何浏览器、任何主机、任何操作系统、并且开源。总之，这个可能成为行业的规范，所以最好还是学习。
+
+首先先安装 `ts-loader` 和 `typescirpt` 
+
+```shell
+npm i ts-loader typescript -D
+```
+
+webpack.config.js
+
+```js
+module.exports = {    
+    module: {
+        rules: [{
+            test: /.ts?$/,
+            use: 'ts-loader',
+            exclude: /node_modules/
+        }]
+    },
+}
+// 只需要配置一下 loader 就行了
+```
+
+可以查看：<https://www.webpackjs.com/guides/typescript/>
+
+还有在项目的更目录中创建一个 `tsconfig.json` 的配置的文件
+
+```json
+{
+    "compilerOptions": {
+        "outDir": "./dist",	//输出文件到哪里去
+        "module": "ES6", //用户使用的js语法版本
+        "target": "ES5", //翻译成什么js语法版本
+        "allowJs": true, //是否允许导入js文件
+    }
+}
+```
+
+`tsconfig.json` 有很多配置，可以查看：<http://www.typescriptlang.org/docs/handbook/tsconfig-json.html>
+
+## webpack-dev-server 转发接口(代理)
+
+通过配置 `devServer.proxy` 可以在**开发环境**时进行端口转发。
+
+webpack.config.js
+
+```js
+module.exports = {
+	devServer: {
+		proxy: {
+			'/getCount': 'http://zhaosirlaile.com',
+		},
+	}
+}
+```
+
+这种方法是用在 **请求相对路径** 的时候非常有用。
+
+更多配置可以参考：<https://www.webpackjs.com/configuration/dev-server/#devserver-proxy> 和  <https://github.com/chimurai/http-proxy-middleware>
+
+还有一个 `devServer.historyApiFallback` 很好用，是用来使用单页面的时候需要去配置的，如果想很多的了解这个参数的话，可以查看：<https://www.webpackjs.com/configuration/dev-server/#devserver-historyapifallback> 和 <https://github.com/bripkens/connect-history-api-fallback>
+
+## ESlint (代码约束)
+
+### 介绍
+
+ESLint是一个用来识别 ECMAScript 并且按照规则给出报告的**代码检测工具**，使用它可以**避免低级错误**和**统一代码的风格**。
+
+## 安装
+
+```shell
+npm i eslint -D
+```
+
+初始化
+
+```shell
+npx eslint --init
+```
+
+之后它就会在命令行中选择按照哪一种方式进行安装，按照安装英文提示选就可以了。
+
+在你的根目录文件中会有一个叫做 `.eslintrc.js` 的配置文件(我选的是 javascirpt，也可以是 json ，这个随你)，这里可以配置一些东西。可以查看：<https://eslint.bootcss.com/docs/user-guide/configuring>
+
+### 使用
+
+可以使用：
+
+```shell
+npx eslint src
+```
+
+因为我的源文件在 `src` 中
+
+其实更好的方式是使用 **vscode** 中的 `eslint` 插件，这个巨好用，如果你的代码有问题，它会**自动标注**起来。
+
+## 提升打包速度
+
+1. 升级工具（node，包管理工具）
+2. 尽可能少使用 loader、插件(没有必要的)
+3. 因为每一次打包都会重新打包第三方库，可以在最开始的时候将所有第三方库合并到一个文件，就不用重复打包了从而提升打包速度。
+4. 控制文件大小（使文件近可能小，不要有冗余代码）
+5. 多进程的打包
+6. 合理使用 sourceMap
+7. 结合 stats文件分析打包结果
+8. 开发环境内存编译
+
+等等...
+
+## 多页面打包
+
+其实就是借用 `HtmlWebpackPlugin` 这个插件，我记得我第二章说过，这里就不多说了
+
+```js
+module.export={
+    plugins:[
+        new HtmlWebpackPlugin({
+            template: 'src/template.html',
+            filename: 'index.html',
+            chunk: ['main']
+        }),
+        new HtmlWebpackPlugin({
+            template: 'src/template.html',
+            filename: 'List.html',
+            chunk: ['vendors','main']
+        }),
+    ]
+}
+```
+
+这里的 `chunk` 就是 `cacheGroups` 分过的组，表示需要引入哪些 `.js` 文件
+

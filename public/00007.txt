@@ -1,0 +1,439 @@
+﻿
+
+## 区间求值算法挑战
+
+```javascript
+function sumAll(arr) {
+    const MAX = Math.max.apply(arr,arr);
+    const MIN = Math.min.apply(arr,arr);
+    let sum = 0;
+    for (let i = MIN; i <= MAX; i++){
+        sum += i;
+    }
+    return sum;
+}
+
+sumAll([1, 4]);
+```
+
+## 找出数组间差异算法挑战
+
+```javascript
+function qiushu(arr) {
+    let number = {};
+    for (let i = 0 ;i < arr.length; i++) {
+        let each = arr[i];
+        if (!number[each]) {
+            number[each] = 1;
+        } else {
+            number[each] ++;
+        }
+    }
+    return number;
+}
+function diff(arr1, arr2) {
+    let newArr = [];
+    let myArr = qiushu(arr1.concat(arr2));
+    for(let key in myArr) {
+        if(myArr[key] === 1) {
+            newArr.push(Number(key) || key);
+        }
+    }
+    console.log(newArr)
+    return newArr;
+}
+
+diff([1, 2, 3, 5], [1, 2, 3, 4, 5]);
+```
+
+## 数字转罗马数字
+
+```javascript
+function convert(num) {
+    var numbers=[1000,900,500,400,100,90,50,40,10,9,5,4,1];
+    var romans=['M','CM','D','DC','C','XC','L','XL','X','IX','V','IV','I'];
+    var str="";
+    numbers.forEach(function(item,index,array){
+        while(num>=item){
+            str+=romans[index];
+            num-=item;
+        }
+    });
+    return str;
+}
+
+convert(36);
+```
+
+
+
+## 对象搜索算法挑战
+
+```javascript
+function where(collection, source) {
+    let arr = [];
+    for(let each of collection) {
+        let flot = false;
+        for (let key in source) {
+            if (each[key] === source[key]) {
+                flot = true;
+            } else {
+                flot = false;
+            }
+        }
+        if (flot === true) {
+            arr.push(each);
+        }
+    }
+    return arr;
+}
+
+where([{ first: "Romeo", last: "Montague" }, { first: "Mercutio", last: null }, { first: "Tybalt", last: "Capulet" }], { last: "Capulet" });
+```
+
+## 字符串查询替换算法挑战
+
+```javascript
+function myReplace(str, before, after) {
+    if (before.charAt(0) === before.charAt(0).toUpperCase()) {
+    after = after.replace(after.charAt(0),after.charAt(0).toUpperCase());
+    }
+    str = str.replace(before,after);
+    console.log(str);
+    return str;
+}
+
+myReplace("A quick brown fox jumped over the lazy dog", "jumped", "leaped");
+```
+
+## 字符串移动插入算法挑战
+
+```javascript
+function translate(str) {
+    let yuanying = {
+        a : '1',
+        e : '1',
+        i : '1',
+        o : '1',
+        u : '1'
+    };
+    if (yuanying[str[0]]) {
+        str += 'way';
+    } else {
+        for(let i in str){
+            if(yuanying[str[i]]){
+                str = str.slice(i) + str.slice(0,i) + 'ay';
+                break;
+            }
+        }
+    }
+    return str;
+}
+
+translate("consonant");
+```
+
+## 字符配对算法挑战
+
+```javascript
+function pair(str) {
+    let obj = {
+        'A' : 'T',
+        'C' : 'G',
+        'G' : 'C',
+        'T' : 'A'
+    };
+    let arr = [];
+    let each = [];
+    for (let i of str) {
+        each = [i,obj[i]];
+        arr.push(each);
+    }
+    return arr;
+}
+
+pair("GCG");
+```
+
+## 字符串查询补充算法挑战
+
+```javascript
+function fearNotLetter(str) {
+    let charCode = str.charAt(0).charCodeAt();
+    for (let i of str) {
+        if(String.fromCharCode(charCode) !== i ) {
+            str = String.fromCharCode(charCode);
+            break;
+        } else {
+            str = undefined;
+        }
+        charCode ++;
+    }
+    return str;
+}
+
+fearNotLetter("abce");
+```
+
+## 输入检查算法挑战
+
+```javascript
+function boo(bool) {
+    let isbool = true;
+    if( bool === true || bool === false) {
+        isbool = true;
+    } else {
+        isbool = false;
+    }
+    console.log(isbool);
+    return isbool;
+}
+boo(null);
+```
+
+## 数组去重算法挑战
+
+```javascript
+function unite(arr1, ...arg) {
+    let arr = arr1.concat(...arg);
+    console.log(arr);
+    arr = arr.filter( i => {
+        return Boolean(i);
+    });
+    arr = new Set(arr);
+    arr = Array.from(arr);
+    console.log(arr);
+    return arr;
+}
+unite([1, 3, 2], [5, 2, 1, 4], [2, 1]);
+```
+
+## html符号转实体算法挑战
+
+```javascript
+function convert(str) {
+    let myStr ='';
+    let stringObj = {
+        '&' : '&amp;',
+        '<' : '&lt;',
+        '>' : '&gt;',
+        '"' : '&quot;',
+        "'" : '&apos;'
+    };
+    for (let i of  str) {
+        if(stringObj[i]) {
+            i = stringObj[i];
+        }
+        myStr += i;
+    }
+    str = myStr;
+    return str;
+}
+convert("Dolce & Gabbana");
+```
+
+## 字符串连接算法挑战
+
+```javascript
+function spinalCase(str) {
+    let myStr = '';
+    for (let i of str) {
+        if(((/\W/g).test(i)) || (i === '_') ) {
+            i = '-';
+        }
+        myStr += i;
+    }
+    if ( myStr.indexOf('-') === -1) {
+        myStr = '';
+        for (let i of str) {
+            if (i.toUpperCase() === i) {
+                i = ('-' + i);
+            }
+            myStr += i;
+        }
+    }
+    str = myStr.toLowerCase();
+    return str;
+}
+spinalCase('The_Andy_Griffith_Show');
+```
+
+## 斐波纳契奇数求和算法挑战
+
+```javascript
+function sumFibs(num) {
+    let sum = 0;
+    let arr = [1,1];
+    for (let i = 2;; i ++) {
+        arr[i] = arr[i-1] + arr[i-2];
+        if (arr[arr.length-1] > num) {
+            arr.pop();
+            break;
+        }
+    }
+    for(let value of arr){
+        if (value % 2 === 1) {
+            sum += value;
+        }
+    }
+    return sum;
+}
+sumFibs(4);
+```
+
+## 质素求和算法挑战
+
+```javascript
+function sumPrimes(num) {
+    let arr = [];
+
+    for (let i = 2 ; i <= num ; i ++) {
+        let flot = true;
+        for (let j = 2; j < i-1; j ++) {
+            if(i % j  === 0) {
+                flot = false;
+            }
+        }
+        if (flot === true) {
+            arr.push(i);
+        }
+    }
+    return arr.reduce((i,j) => {
+        return i+j;
+    });
+}
+sumPrimes(10);
+```
+
+## 最小公倍数算法挑战
+
+```javascript
+function smallestCommons(arr) {
+    let a = arr[0] > arr[1] ? arr[1]:arr[0];
+    let b = arr[0] > arr[1] ? arr[0]:arr[1];
+    for (let i = b; ; i++) {
+        let flot ;
+        for(let j = a ; j <= b; j++) {
+            if (i % j === 0) {
+                flot = true
+            } else  {
+                flot = false;
+                break;
+            }
+        }
+        if (flot === true) {
+            return i;
+        }
+    }
+}
+smallestCommons([1,5]);
+```
+
+## 数组验证算法挑战
+
+```javascript
+function find(arr, func) {
+    let num ;
+    for( num of arr) {
+        if(func(num)) {
+            return num;
+        }
+    }
+    return undefined ;
+}
+find([1, 2, 3, 4], function(num){ return num % 2 === 0; });
+```
+
+## 数组取值算法挑战
+
+```javascript
+function drop(arr, func) {
+    for(let each in arr) {
+        if(func(arr[each])) {
+            num = each;
+            return arr.splice(each);
+        }
+    }
+    return [];
+}
+drop([1, 2, 3], function(n) {return n < 3; });
+```
+
+## 数组平铺算法挑战
+
+```javascript
+function steamroller(arr) {
+    let myArr = [];
+    function qingpu(arr) {
+        for(let  eachArr of arr) {
+            if (eachArr instanceof  Array) {
+                qingpu(eachArr);
+            } else  {
+                myArr.push(eachArr);
+            }
+        }
+    }
+    qingpu(arr)
+    return myArr;
+}
+steamroller([1, [2], [3, [[4]]]]);
+//注：这里用到了递归
+```
+
+## 二进制转字符算法挑战
+
+```javascript
+function binaryAgent(str) {
+    let arr = str.split(' ');
+    let mystr = '';
+    for (let num in arr){
+        mystr = mystr + String.fromCharCode(parseInt(arr[num],2));
+    }
+    return mystr;
+}
+
+binaryAgent("01000001 01110010 01100101 01101110 00100111 01110100 00100000 01100010 01101111 01101110 01100110 01101001 01110010 01100101 01110011 00100000 01100110 01110101 01101110 00100001 00111111");
+```
+
+## 数组元素判断算法挑战
+
+```javascript
+function every(collection, pre) {
+    for(let each of collection) {
+        console.log(each);
+        if( !each[pre] ) {
+            return false;
+        }
+    }
+    return true;
+}
+every([{"user": "Tinky-Winky", "sex": "male"}, {"user": "Dipsy", "sex": "male"}, {"user": "Laa-Laa", "sex": "female"}, {"user": "Po", "sex": "female"}], "sex");
+```
+
+## 函数迭代可选参数算法挑战
+
+```javascript
+function add() {
+        let sum = 0 ;
+        if (arguments.length === 2 ) {
+            if(typeof (arguments[0]) === 'number' && typeof (arguments[1]) === 'number') {
+                sum = arguments[0] + arguments[1];
+            } else {
+                sum = undefined;
+            }
+        } else if (arguments.length === 1 && typeof (arguments[0]) === 'number' ) {
+            sum = arguments[0];
+            return function (y) {
+                if (typeof (y) !== 'number') {
+                    return undefined;
+                }
+                return sum + y;
+            }
+        } else {
+            sum = undefined;
+        }
+        return sum;
+    }
+add(2,3);
+```
+

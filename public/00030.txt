@@ -1,0 +1,92 @@
+## 什么是代理模式？
+
+在现实生活中，可以找到很多使用了代理模式的场景。例如：我想要去租房，一般的做法是不是找个中介，给你介绍房子，这样你可以节约很多的时间和精力，而这时候中介就是**代理**；如果有商家想找某某明星打广告，是不是一般先找这个明星的经纪人，和这个经纪人商量好一些片酬和细节，而后在把这个合同（结果）交给明星，而这个经纪人就是**代理**。
+
+**定义：** 代理模式给某一个对象提供一个代理对象，并由代理对象控制对原对象的引用。通俗的来讲代理模式就是我们生活中常见的中介、经纪人之类的。
+
+**不使用代理**：
+
+![1568359999214](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1568359999214.png)
+
+**使用代理模式**：
+
+![1568360016586](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1568360016586.png)
+
+## 代理的优点
+
+- 用户可以放心不用关心（本体），放心使用代理，而他只关心是否能得到想要结果而已
+- 在任何时候本体的地方都可以替换成使用代理
+
+`注意`：
+
+在我们写代码的时候往往不需要提前就使用代理模式，而是当我们感觉真正的不方便访问某个对象的时候，我们在写上代理模式也不迟。
+
+
+
+在 JavaScript 中最常使用的是虚拟代理和缓存代理。
+
+## 虚拟代理
+
+### 定义
+
+将一些我们开销很大的对象，延迟到真正需要它的时候才去创建。
+
+举个例子吧：就在我们写过的前几篇博客中的《单例模式》中有个实例，当我们的用户需要注册的时候才去创建它，并且只创建一次！
+
+```js	
+var createDiv = function(){
+    var div = document.createElement('div');
+    div.innerText = '这是一个注册浮框';
+    return div;
+    // 注：里面的东西我就不写了，自己脑补
+}
+var proxyCreateDiv = (function(){
+    var obj;
+    return function() {
+        arguments = [].slice.call(arguments);
+        return obj || (obj = arguments.shift().apply(this,arguments))
+    }
+})()
+let x = proxyCreateDiv(createDiv);
+let y = proxyCreateDiv(createDiv);
+console.log(x === y)
+```
+
+
+
+## 缓存代理
+
+我们做一个加法计算器，这个计算器有一个缓存功能，可以将用户计算过的数据缓存起来
+
+```js
+var mult = function () {
+    console.log('开始计算乘积');
+    var a = 1;
+    for (var i = 0, l = arguments.length; i < l; i++){
+        a = a * arguments[i];
+    }
+    return a;
+}
+var proxMult = (function(){
+    var cache = {};
+    return function(){
+        var args = [].join.call(arguments,',');
+        if (args in cache){
+            return cache[args];
+        }
+        return cache[args] = mult.apply(this,arguments);
+    }
+})()
+console.log(proxMult(2,3));
+console.log(proxMult(2,3));
+console.log(proxMult(2,3,4));
+```
+
+其实代理模式有很多分类，但是不要被吓到了，它们都是运用上面的一个思想，拿一个对象作为**代理**来控制访问**本体**，从而把结果返回给**用户**，仅仅只是实现的功能不同而已
+
+
+
+**参考资料**：
+
+- JavaScript 设计模式与开发实践
+

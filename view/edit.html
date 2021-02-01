@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<link rel="shortcut icon" href="https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/img/favicon.ico" type="image/x-icon">
+    <title>后台管理页面</title>
+    <link rel="stylesheet" href="/node_modules/bootstrap/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/manage/css/manage.css">
+    <link rel="stylesheet" href="/manage/css/edit.css">
+</head>
+<body>
+
+    <div class="w">
+        <div class="header">
+                <nav class="navbar navbar-default">
+                    <div class="container-fluid">
+                        <div class="navbar-header">
+                        <a class="navbar-brand" href="">
+                            <img alt="Brand" class="logo" src="https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/img/logo.png">
+                        </a>
+                        </div>
+                    </div>
+                </nav>
+        </div>
+        <div class="main">
+            <div class="nav">
+                <ul class="nav nav-pills nav-stacked">
+                    <li><a href="/manage">首页</a></li>
+                    <li><a href="/blogmanage">博客管理</a></li>
+                    <li class="active"><a href="/edit">写博客</a></li>
+                </ul>
+            </div>
+            <div class="content">
+                <div class="content-top">
+                    <input class="blogTitle" placeholder="请输入文章标题" type="text">
+                    <button class="fabu">发布博客</button>
+                </div>
+                <div class="edit">
+                    <textarea class="edit-left" id='md' placeholder="请输入markdown文件"></textarea>
+                    <div class="edit-right"  id='html'>
+                        展示区
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="floatBox">
+        <div class="floatBox-center">
+            <div class="flatBox-top">
+                <p>发布文章</p>
+                <i class="glyphicon glyphicon-remove"></i>
+            </div>
+            <div class="form-group top">
+                <label class="col-sm-3 col-xs-3" for="文章标签">文章标签</label>
+                <div class="col-sm-9 col-xs-9">
+                    <input type="text" class="blog-tags form-control" id="文章标签" placeholder="使用逗号分隔">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-3 col-xs-3" for="文章概述">文章概述</label>
+                <div class="col-sm-9 col-xs-9">
+                    <textarea class="blog-descibe form-control" placeholder="不得超过300个字" rows="4"></textarea>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-3 col-xs-3" for="文章图片">文章图片</label>
+                <div class="col-sm-9 col-xs-9">
+                    <a href="#" class="thumbnail">
+                        <img class="uploadImgShow" src="https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/upload.svg" alt="">
+                    </a>
+                </div>
+                <input style="display: none" class="uploadImg" type="file" id="exampleInputFile">
+            </div>
+            <div class="form-group">
+                <button class="btn btn-danger" type="button">取消发布</button>
+                <button class="btn btn-success"  type="button">确认发布</button>
+            </div>
+        </div>
+    </div>
+<script src="/node_modules/jquery/dist/jquery.min.js"></script>
+<script src="/node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+<script src="/node_modules/marked/marked.min.js"></script>
+<script>
+    $(function(){
+        marked.setOptions({
+            renderer: new marked.Renderer(),
+            highlight: function(code,lang) {
+                return code;
+            },
+            pedantic: false,
+            gfm: true,
+            breaks: false,
+            sanitize: false,
+            smartLists: true,
+            smartypants: false,
+            xhtml: false
+        });
+        $('#html').html(marked($("#md").val()));
+        for (let item of $('pre')){
+            let str = '';
+            let codeContent = $(item).children()[0].innerText;
+            for(let i = 1; i <= codeContent.split('\n').length +1; i++) {
+                str += `<p>${i}</p>`
+            }
+            $(item).prepend(`<div>${str}</div>`)
+        }
+        
+        $("#md").on("keyup blur",function () {
+            $('#html').html(marked($("#md").val()));
+            for (let item of $('pre')){
+                let str = '';
+                let codeContent = $(item).children()[0].innerText;
+                for(let i = 1; i <= codeContent.split('\n').length +1; i++) {
+                    str += `<p>${i}</p>`
+                }
+                $(item).prepend(`<div>${str}</div>`)
+            }
+        })
+    });
+    function createul(strArr){
+        let str = '';
+        for(let item of strArr){
+            str += `<li>${item}</li>`;
+        }
+        return `<ol>${str}</ol>`
+    }
+</script>
+<script>
+    let imgData = '';
+    $(function(){
+        $('.fabu').click(function(){
+            $('.floatBox').show();
+        })
+        $('.floatBox-center').click(function(e){
+            if (e.target.tagName === 'I') {
+                $('.floatBox').hide();
+            } else if(e.target.tagName === 'BUTTON') {
+                if (e.target.innerHTML === '取消发布') {
+                    $('.floatBox').hide();
+                } else {
+                    $.ajax({
+                        type: "POST",
+                        url: "/edit/uploadImg",
+                        processData:false,
+                        contentType: "application/json;charset=UTF-8",
+                        data: JSON.stringify({
+                            imgData: imgData,
+                        }),
+
+                    });
+                    $.ajax({
+                        type: "POST",
+                        url: "/edit/issueBlog",
+                        contentType: "application/json;charset=UTF-8",
+                        data: JSON.stringify({
+                            title: $('.blogTitle').val(),
+                            content: $('.edit-left').val(),
+                            tags: $('.blog-tags').val(),
+                            describe: $('.blog-descibe').val(),
+                        }),
+                        success: function(msg){
+                            alert(msg);
+                        },
+                        error: function(e){
+                            console.error('发表失败')
+                        }
+                    });
+                }
+            }
+        })
+        $('.uploadImg').change(function(){
+            var reader = new FileReader();
+            reader.onload = (function (file) {
+                return function (e) {
+                    var datainfo = this.result;
+                    imgData = datainfo;
+                    $('.uploadImgShow').attr('src',datainfo);
+                };
+            })(this.files[0]);
+            reader.readAsDataURL(this.files[0]);
+        })
+        $('.uploadImgShow').click(function(){
+            $('.uploadImg').click();
+        })
+        // console.log($('.uploadImg'));
+
+    })
+</script>
+</body>
+</html>

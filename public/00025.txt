@@ -1,0 +1,73 @@
+﻿## 定义
+
+**保证一个类仅有一个实例，并提供一个访问它的全局访问点。**
+
+有的时候我们创建一个对象仅仅需要一个，比如线程池、浏览器中的 window 对象等。在 JavaScript 中，单例模式的用途同样非常的广泛。例如，我们做一个提示浮窗，可以让他显示登录成功，登录失败，密码错误等等，无论我们显示多少次提示浮窗，这个浮窗都仅仅创建一次（是唯一的），这样可以有效地节约内存资源。
+
+![1564647440869](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1564647440869.png)
+
+## 创建
+
+`注意：单例模式会运用到闭包、高级函数，如果不会，不怎么看的懂，那就先搞它们，再来看这篇文章吧!`
+
+如何创建一个单例模式呢？创建一个标准的单例模式并不难，无非就是用一个变量来记录下这个已经被创建过的对象（使用闭包进行私有化、延长生命周期），如果已经被创建过，那就返回第一次被创建过的对象，如果没有，就创建该对象，并将其返回。
+
+下面是单例模式的核心代码：
+
+`注意：以下代码将创建对象的方法与单例模式的核心代码进行了分离`
+
+```js
+var singleCase = (function(){
+    var obj;
+    return function(name,age) {
+        if ( !obj ) {
+			obj = new Person(name,age);
+        }
+        return obj;
+    }
+})
+// 也上单例模式的核心代码
+
+function Person (name,age) {
+    this.name = name;
+    this.age = age;
+}
+// Person 类
+```
+
+## 如何在JavaScript中创建一个单例模式的提示浮窗
+
+想一想，我们实现这种单例模式提示浮窗，有几种实现的办法！
+
+1. 第一种方案，就是页面加载完成的时候便创建好这个提示浮窗，只不过一直是隐藏的，当需要使用时才会被创建。如果用户发生的行为，没有触发提示浮窗，这就有点白白浪费一些DOM节点，内存资源等。
+2. 第二种方案，就是当用户发生的行为，触发提示浮窗时，我们就创建一个提示浮窗。如何用户的行为一直触发提示浮窗，那到底我需要创建多少个呢？而且这非常浪费资源
+3. 第三种方案，就是单例模式了，前面已经聊过了，请看代码。
+
+`以下代码是第三种方案`
+
+```js
+var singleCase = (function(){
+  var obj;
+  return function() {
+      arguments = [].slice.call(arguments);
+      return obj || (obj = arguments.shift().apply(this,arguments))
+  }
+})()
+// 以上是核心代码
+function creatediv () {
+  var div = document.createElement( 'div' ); 
+  div.innerHTML = '提示浮窗'; 
+  return div;
+}
+// 这个是创建一个类
+
+let div1 = singleCase(creatediv);
+let div2 = singleCase(creatediv);
+// div1 === div2 		// ture
+console.log(div1,div2);
+// 我们使用的话，仅仅需要把 创建对象的类方法 传入到 singleCase 方法中即可
+```
+
+参考资料：
+
+- JavaScript设计模式与开发实践

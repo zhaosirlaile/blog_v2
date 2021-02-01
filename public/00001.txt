@@ -1,0 +1,113 @@
+
+这是本人第一次写博客，如果有什么写错之处还请多多见谅！
+
+-------------------
+CSS的主要选择器有以下几种：
+ 1. 标签选择器
+ 2. 类选择器   
+ 3. 伪类选择器
+ 4. ID选择器
+ 5. 内嵌选择器
+
+CSS的权重就像做官一样，谁的职位大就听谁的。因此，浏览器会以一种机制来计算CSS的权重，谁的权重高就执行谁，而权重低的一方就会被权重高度一方所覆盖。我们用一种 0,0,0,0 的形式来表示CSS的权重，下面我就带大家了解他们
+其中标签选择器是：
+```css
+h1{    //可以是html中的所有标签元素，其权重是 0,0,0,1
+    color: white;
+    height: 120px;
+    line-height: 120px;
+    font-size: 36px;
+    margin: 0 30px;
+}
+```
+类选择器是：
+```css
+.content {   //必须是你指的的所有class值 ，其权重是 0,0,1,0
+    margin: 200px auto;
+    display: flex;
+    flex: 1;
+    justify-content: center;
+    height: 120px;
+}
+```
+伪类选择器是：
+```css
+a:hover{  //伪类元素有许多，像a:link,a:active都是，它和类选择器的权重一样都是 0,0,1,0
+	color:red;
+}
+```
+ID选择器：
+```css
+#nav-top{    //ID选择器必须是你指的的所有ID值，其权重是 0,1,0,0
+	color:blue;
+	font-size:19px;
+}
+```
+内嵌选择器：
+```
+<a href="#" style="color:pink"></a>
+//内嵌选择器就是在标签里写样式，其权重是 1,0,0,0
+```
+最后有一种例外：
+
+    body{   //在属性后写 !important ，其权重就为 无穷大（最大的）。但最好别这样，它会影响你的网页性能
+        background-color: #000 !important; 
+    }
+
+如下图总结：
+
+![图片](http://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/20181215191917222.jpg)
+
+ **CSS权重叠加**
+以下有一些例子请您好好理解：
+```css
+nav ul li{			//它们都是标签选择器，故权重为 0,0,0,3
+	color: red;
+}
+li {			//它的权重为 0,0,0,1
+	color: blue;
+}
+//以上两个相比较，猜一猜是字体什么颜色？
+//答案是红色
+```
+```css
+.nav ul li{			//因为有一个类选择器，两个标签选择器，故权重就是 0,0,1,2
+	color: pink; 
+}
+ul li{			//它们都是标签选择器，故权重为 0,0,0,2
+	color: red;
+}
+//以上两个相比较，猜一猜是字体什么颜色？
+//答案是粉红色
+```
+我想到这里大家已经有所了解权重的概念，下面我们来点更有难度的：
+```css
+以下是html的代码
+    <div id="nv">
+        <div class="left">
+            <a href="#">Hellow World!</a>
+        </div>
+        <div class="right">
+            <a href="#">Hellow World!</a>
+        </div>
+    </div>
+//以上是html代码
+//以下是CSS代码
+        #nv a{		//权重为 0,1,0,1
+            color: red;
+        }
+        #nv .left a{	//权重为 0,1,1,1
+            color: pink;
+        }
+        .right a{		//权重为 0,0,1,1
+            color: black;
+        }
+//以上是代码
+//以上三个相比较，猜一猜是字体什么颜色？，是粉色，黑色，还是红色
+//答案是在div.left下面字体的是粉色，在div.right下面字体的是红色
+```
+以下是我的CSS权重叠加总结：
+
+![在这里插入图片描述](http://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/20181215195448745.jpg)
+
+谢谢！如果有什么错误之处还请包含，毕竟我也是小白呀！

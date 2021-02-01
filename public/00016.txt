@@ -1,0 +1,360 @@
+﻿SQL： 结构化查询语言（Structured Query Language），是一种数据库查询和程序设计语言。用于存取数据以及查询、更新和管理关系数据库。顺便要说：sql 是数据库脚本文件的扩展名。
+
+## SQL 语句类型
+
+- DDL （数据定义操作）
+  - create
+  - drop
+  - alter
+- DML （数据操作语句）
+  - insert 
+  - updata
+  - delete
+- DQL （数据查询语句）
+  - select
+
+## 数据类型
+
+下面常用的数据类型会列出含义
+
+- 数字类型
+  - 整数
+    - tinyint ：因为 MySQL 中没有 bool 值，故使用 tinyint[1] 表示 true,tinyint[0] 表示 false
+    - bit
+    - bool
+    - smallint
+    - mediumint
+    - int ：正常大小的整数，有符号的范围是 -2147483648到 2147483647。无符号的范围是 0到4294967295。
+    - bigint
+  - 浮点数
+    - float
+    - double
+- 字符类型
+  - 文本字符串
+    - char ：定长字符串，存储速度快，但是浪费空间
+    - varchar ：变长字符串，存储速度慢，可是节省空间
+    - tinytext
+    - text
+    - mediumtext
+    - longtext
+    - enum ：表示枚举 多选一
+    - set ：表示集合 多选多
+  - 二进制字符串
+    - bit
+    - binary
+    - varbinary
+- 日期类型
+  - year	
+  - time
+  - date ：支持的范围是 ‘1000-01-01’到 ‘9999-12-31’
+  - datetime ：日期和时间组合。支持的范围是 ‘1000-01-01 00:00:00.000000’到 ‘9999-12-31 23:59:59.999999’
+  - timestamp
+
+## 约束
+
+**约束**的作用是保证数据的**完整性**和**一致性**
+
+- 主键（primary key)
+  - 唯一标识数据库表中的每条记录
+  - 主键列不能出现重复值
+  - 主键列不能包含 NULL 值
+  - 每个表只能有一个主键
+  - 主键可以有一个字段或多个字段组合构成（联合主键/复合主键）
+  - `null/not null` :设置指定字段是否允许为空（默认值为： null)
+  - `primary key` 主键
+- 唯一值（unique）
+- 缺省约束（default）
+- 非空约束（not null）
+- 外键（foreign key）
+- 自动增长（auto-increment ）
+  - `auto_increment` 是数据列的一种属性，只适用于`数字`类型
+  - `auto_increment` 对应数据列必须具备 `NOT NULL`
+  - 一个表`只能`有一个字段使用 `auto_increment`
+  - 将字段设置成 `auto_increment` 之后，是需要将其设置成`主键/或者主键的一部分`
+  - 用户添加数据时，该字段的值不可添加
+  - 可在建表时可用 auto_increment = n 选项来指定一个自动递增的初始值
+  - 可用 `alter table 表名 auto_increment = n` 来重设自动递增的起始值，默认的起始值、步长均是 `1`
+- 零填充（ZEROFILL）
+  - 当数据的显示长度不够的时候可以使用前补0的效果填充至指定长度,字段会自动添加 unsigned
+
+### 表中记录进行约束（实体）
+
+- 主键（primary key)
+- 唯一值（unique）
+
+### 表中字段进行约束（域）
+
+- 缺省约束（default）
+- 非空约束（not null）
+
+### 表与表之间进行约束（引用）
+
+- 外键（foreign key）
+
+## DDL(数据定义操作)
+
+- create（创建）
+- drop（删除）
+- alter （修改）
+- desc （查看表格详情）
+
+### create 
+
+创建数据库
+
+```sql
+create database 数据库名称
+```
+
+创建表
+
+```sql
+CREATE TABLE 表名 (
+    字段名1 类型 约束,
+    [字段名2 类型 约束,]
+    ...
+)
+```
+
+例子：
+
+```sql
+CREATE TABLE Students (
+  stuId CHAR(8) NOT NULL PRIMARY KEY,
+  stuAge TINYINT NULL
+)
+```
+
+注意：最后不用加 `,`.
+
+### drop
+
+删除数据库
+
+```mysql
+drop database 数据库名;
+```
+
+删除单表
+
+```sql
+drop table 表名
+```
+
+删除多表
+
+```sql
+drop table 表名[,其他表名...]
+```
+
+### alter
+
+对表的字段进行添加
+
+```mysql
+alter table 表名 add 字段名 数据类型[(长度)] [关键字] [after|before 字段名]
+```
+
+对表的字段类型进行修改
+
+```sql
+alter table 表名 alter 字段名 数据类型[(长度)] [关键字]
+```
+
+对表的字段进行删除
+
+```sql
+alter table 表名 drop 字段名
+```
+
+### desc 
+
+查看表格详情
+
+```mysql
+desc 表名
+```
+
+## DML(数据操作语言)
+
+- insert（添加）
+- delete（删除）
+- updata （更新）
+
+
+
+### insert 
+
+添加一条记录
+
+##### 方法一
+
+```sql
+INSERT INTO 表名(字段名1[,字段名2...]) VALUES (值1[,值2...])
+```
+
+##### 方法二
+
+```sql
+INSERT INTO 表名 VALUES (完整的记录)
+```
+
+追加多条记录
+
+```mysql
+INSERT INTO 表名 select语句
+```
+
+### updata
+
+根据条件，更新表中的数据
+
+```sql
+update 表名 set 字段名1 = '新值'[,字段名2 = '新值',字段名3 = '新值'...] [where 条件表达式];
+```
+
+### 删除
+
+### delete
+
+根据条件，删除表中的数据
+
+```mysql
+delete from 表名 [where 条件表达式];
+```
+
+### truncate
+
+根据条件，删除表中的数据
+
+```mysql
+truncate table 表名 
+```
+
+delete 或 truncate 的区别：
+
+- delete 会在日志文件中记录操作，以便数据还原
+- truncate 不会再日志文件中记录操作，无法进行数据还原
+
+## DQL(数据查询语言)
+
+```sql
+SELECT [[distinct] 字段名1[,字段名2...]|*]
+FROM 表名 
+[inner join 表名1 on 表名.字段名 = 表名1.字段名 | left inner join 表名1 on 表名.字段名 = 表名1.字段名 | right inner join 表名1 on 表名.字段名 = 表名1.字段名 ]
+[WHERE 条件表达式]
+[group by 字段名1,字段名2]
+[order by asc|desc]
+[limit 数值]
+```
+
+### 运算符
+
+运算符大致可分为：
+
+- 算术运算符
+- 逻辑运算符
+- 比较运算符
+
+#### 算术运算符
+
+| 运算符 | 描述     |
+| ------ | -------- |
+| +      | 加法运算 |
+| %      | 取模运算 |
+| -      | 减法运算 |
+| DIV    | 除法运算 |
+| *      | 乘法运算 |
+| MOD    | 取模运算 |
+| /      | 除法运算 |
+
+#### 逻辑运算符
+
+- and	（与）
+- or    （或）
+- not  （非）
+
+#### 比较运算符
+
+|         符号         | 描述         |
+| :------------------: | ------------ |
+|          =           | 等于         |
+|        <>,!=         | 不等于       |
+|          >           | 大于         |
+|          <           | 小于         |
+|          <=          | 小于等于     |
+|         \>=          | 大于等于     |
+|   between...and...   | 在两值之间   |
+| not between...and... | 不在两值之间 |
+|          in          | 在集合中     |
+|        not in        | 不在集合中   |
+|         like         | 模式匹配     |
+|       not like       | 模式不匹配   |
+|       is null        | 为空         |
+|     is not null      | 无为空       |
+
+### 统配符
+
+统配符一般与模式匹配和模式不匹配
+
+| 通配符 | 描述                                         |
+| :----: | -------------------------------------------- |
+|   %    | 代表0个或多个任意字符                        |
+|   -    | 代表一个任意字符，常用来限制表达式的字符长度 |
+
+### 子查询
+
+- 子查询是指一个查询语句嵌套在另一个查询语句内部的查询
+- 子查询（内层）结果作为外层SQL操作的过滤条件
+- 子查询可以添加到select、update、delete语句中
+- 子查询可进行多次嵌套
+
+### 连接技术
+
+针对多表操作，将多个表的借口看成是一个表的结构
+
+- 内连接
+- 外联接
+- 全连接
+
+#### 内连接
+
+```mysql	
+select 字段列表[|*] 
+from 表名
+inner join 要进行内连接的表名
+on 两表之间的关系
+where 条件表达式
+```
+
+#### 外连接
+
+```mysql
+outer join
+```
+
+分为：
+
+- 左外连接
+  - `left outer join` 或 `left join`
+- 右外连接
+  - `right outer join` 或 `right join`
+
+## MySQL 的注释
+
+### 单行注释：
+
+```sql
+#your SQL 
+```
+
+```mysql
+-- nihao 
+```
+
+### 多行注释：
+
+```sql
+/* your SQL*/
+```
+

@@ -1,0 +1,58 @@
+﻿## 准备
+
+请使用以下使用 `npm` 下载以下的包
+
+- bootstrap: "^3.4.1",
+- jquery: "^3.4.1",
+- marked: "^0.7.0"
+
+## 代码
+
+效果图：
+
+![1564752584699](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1564752584699.png)
+
+直接上主要代码，css就不行了：
+
+```html
+<script src="./node_modules/jquery/dist/jquery.min.js"></script>
+<script src="./node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+<script src="./node_modules/marked/marked.min.js"></script>
+<script>
+    $(function(){
+        marked.setOptions({
+            renderer: new marked.Renderer(),
+            highlight: function(code) {
+                return createul(code.split('\n'));
+            },
+            pedantic: false,
+            gfm: true,
+            breaks: false,
+            sanitize: false,
+            smartLists: true,
+            smartypants: false,
+            xhtml: false
+        });
+        $("#md").on("keyup blur",function () {
+            $('#html').html(marked($("#md").val()));
+        })
+    });
+    function createul(strArr){
+        let str = '';
+        for(let item of strArr){
+            str += `<li>${item}</li>`;
+        }
+        return `<ol>${str}</ol>`
+    }
+</script>
+</body>
+</html>
+```
+
+`注意：`
+
+刚开始我仅仅知道使用 `marked.js` 把 `markdown ` 转换为 `html` ，不能实现`代码高亮`，也没有`行号`
+
+后来我看了下它的官方的API文档，发现了 `highlight` 这个方法，传入一个字符串，而这个字符串就是我们解析 `markdown` 遇到的 **code** 。所以，我们可以把这个字符串按行分割，最外面套一个 `ol` 标签，每一行套一个 `li`，注意，返回的必须是字符串。
+
+![](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/Honeycam%202019-08-02%2021-52-17.gif)

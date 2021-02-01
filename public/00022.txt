@@ -1,0 +1,211 @@
+﻿
+
+## 介绍
+
+Mint UI 是基于 Vue.js 封装的移动端组件库
+
+`注意：Mint UI 是与 bootstrap 之类的框架不同的，bootstrap是代码片段，而 Mint UI是我们基于 vue 封装的组件库 `;
+
+例如：
+
+Mint UI 里面的一个组件就是一个 `.vue` 文件
+
+```vue
+<template>
+    <h1>我们使用了{{ msg }}</h1>
+</template>
+
+<script>
+export default {
+    data: function(){
+        return {
+            msg:'nihao'
+        }
+    }
+}
+</script>
+
+<style>
+
+</style>
+```
+
+它的官网：<http://mint-ui.github.io/>;
+
+## 安装
+
+```shell
+# Vue 1.x
+npm install mint-ui@1 -S
+# Vue 2.0
+npm install mint-ui -S
+```
+
+
+
+## 引入
+
+```js
+// 引入全部组件
+import Vue from 'vue';
+import Mint from 'mint-ui';
+Vue.use(Mint);
+
+// 按需引入部分组件
+import { Cell, Checklist } from 'minu-ui';
+Vue.component(Cell.name, Cell);
+Vue.component(Checklist.name, Checklist);
+```
+
+
+
+## 使用
+
+### 全部导入
+
+在 `main.js` 文件中注册你需要的组件
+
+```js
+import Vue from 'vue';
+import app from './app.vue';
+import VueRouter from 'vue-router';
+
+Vue.use(VueRouter);
+
+import router from './router';
+
+import MintUI from 'mint-ui';		// 导入 mint-ui 的控件
+import 'mint-ui/lib/style.css';		// 引入 mint-ui 自带的样式
+
+Vue.use(MintUI);					// 将全部的mint-ui的组件全局挂载到vue中
+
+let vm = new Vue({
+    el: '#app',
+    render: c => c(app),
+    router
+})
+```
+
+之后就可以在这个文件中的使用 mint-ui 组件库了，而后我们就可以使用这些组件了
+
+Mint UI 的组件分为三类：
+
+- JS Components
+  - 需要在我们的组件中导入
+- CSS Components
+  - 是不需要我们的组件中导入的
+- Form Components
+
+
+
+JS Components 的例子：
+
+```vue
+<template>
+<div>
+    <h1>这是 APP 组件</h1>
+    <mt-button type="default" @click="show">default</mt-button>
+    <router-link to="/account">Account</router-link>
+    <router-link to="/goodslist">Goodslist</router-link>
+    <router-view>
+    </router-view>
+</div>
+</template>
+<script>
+// 导入 Toast 组件
+import {Toast} from 'mint-ui';
+    
+export default {
+    data(){
+        return {};
+    },
+    methods: {
+        show(){
+            Toast('提示信息');
+        }
+    },
+}
+</script>
+<style>
+</style>
+```
+
+Toast 带入参数：
+
+```js
+<template>
+<div>
+    <h1>这是 APP 组件</h1>
+    <mt-button type="default" @click="show">default</mt-button>
+    <router-link to="/account">Account</router-link>
+    <router-link to="/goodslist">Goodslist</router-link>
+    <router-view>
+    </router-view>
+</div>
+</template>
+<script>
+// 导入 Toast 组件
+import {Toast} from 'mint-ui';
+    
+export default {
+    data(){
+        return {};
+    },
+    methods: {
+        show(){
+            Toast({
+                message: '提示',
+                position: 'bottom',
+                duration: 5000
+            });
+        }
+    },
+}
+</script>
+<style>
+</style>
+```
+
+### 按需导入
+
+第一步：安装babel-plugin-component
+
+```shell
+npm install babel-plugin-component -D
+```
+
+第二步：修改 `.bablerc` 文件
+
+```js
+{
+    "presets": ["env","stage-0"],
+    "plugins": ["transform-runtime",["component", [
+    {
+      "libraryName": "mint-ui",
+      "style": true
+    }
+  ]]]
+}
+```
+
+第三部：在 `main.js` 中导入你要使用的组件
+
+```js
+import Vue from 'vue';
+import app from './app.vue';
+import VueRouter from 'vue-router';
+
+Vue.use(VueRouter);
+
+import router from './router';
+
+import { Button } from 'mint-ui';		// 这里就是按需导入的方式
+Vue.component(Button.name, Button);		// 这里就是注册组件，有两个参数，第一个是 Button 的名称（可自定义），第二个为上一句导入的 Button
+
+let vm = new Vue({
+    el: '#app',
+    render: c => c(app),
+    router
+})
+```
+

@@ -1,0 +1,189 @@
+今天这一章节主要介绍 **拦截器**
+
+目录结构：
+
+![1590239141882](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1590239141882.png)
+
+## 拦截器
+
+先问什么是拦截器？
+
+可以从字面意思理解大概就是**拦截数据**，主要运用在发起请求前或请求返回数据后对数据进行处理，可以运用在登录、处理一些格式化数据之类的。
+
+按照请求的时间不同分为：请求前的 **请求拦截器**，请求后的 **响应拦截器**
+
+在 `types/index.ts` 中新增代码
+
+```typescript
+// ...
+// 最后加入
+export interface AxiosInterceptorManage<T>{
+    use(resolved:ResolvedFn<T>,rejected?:RejectedFn):number,
+
+    eject(id:number):void
+}
+
+export interface ResolvedFn<T>{
+    (val:T) : T | Promise<T>
+}
+
+export interface RejectedFn {
+    (error: any) : any,
+}
+```
+
+其中 `<T>` 表示 **泛型** （之前说过的）
+
+新增文件 `core/InterceptorManager.ts` 
+
+```typescript
+import {RejectedFn,ResolvedFn} from '../types/index';
+
+interface Interceptor<T>{
+    resolved:ResolvedFn<T>,
+    rejected?:RejectedFn,
+
+}
+
+export default class InterceptorManager<T>{
+    private interceptors:Array<Interceptor<T> | null>
+
+    constructor(){
+        this.interceptors = []
+    }
+    use(resolved:ResolvedFn<T>,rejected?:RejectedFn):number{
+        this.interceptors.push({
+            resolved,
+            rejected,
+        })
+        return this.interceptors.length -1;
+    }
+
+    forEach(fn:(interceptor: Interceptor<T>) => void) : void {
+        this.interceptors.forEach(interceptor => {
+            if(interceptor !== null) {
+                fn(interceptor);
+            }
+        })
+    }
+
+    eject(id:number):void{
+        if(this.interceptors[id]) {
+            this.interceptors[id] = null;
+        }
+    }
+}
+```
+
+定义一个 **InterceptorManager** 类，其中有一个 **use** 方法，主要用来将回调函数添加到 **interceptors** 中，并返回其**下标**；**eject** 方法用在**下标**删除回调函数; **forEach** 遍历回调函数
+
+`core/Axios.ts`
+
+```typescript
+// ...
+
+import InterceptorManager from './InterceptorManager';
+
+interface Interceptors{
+    request: InterceptorManager<AxiosRequestConfig>
+    response: InterceptorManager<AxiosResponse>
+}
+
+interface PromiseChain<T> {
+    resolved:ResolvedFn<T> | ((config:AxiosRequestConfig) => AxiosPromise)
+    rejected?:RejectedFn, 
+}
+export default class Axios{
+    interceptors: Interceptors
+    constructor(){
+        this.interceptors = {
+            request : new InterceptorManager<AxiosRequestConfig>(),
+            response :new InterceptorManager<AxiosResponse>(),
+        }
+    }
+    request(url: any, config?:any):AxiosPromise {
+		// ...
+        
+        const chain:PromiseChain<any>[] = [{
+            resolved: dispatchRequest,
+            rejected: undefined,
+        }]	// 添加要发起请求
+        this.interceptors.request.forEach(interceptor => {
+            chain.unshift(interceptor)
+        })	// 请求拦截器放在 请求 前
+
+        this.interceptors.response.forEach(interceptor => {
+            chain.push(interceptor)
+        })	// 响应拦截器放在 请求 后
+
+        let promise = Promise.resolve(config)
+
+        while(chain.length) {
+            const {resolved,rejected} = chain.shift()!
+            promise = promise.then(resolved,rejected);
+        }	// 遍历 chain ，实现调用
+		
+
+        return promise;
+    }
+    
+    // ...
+}
+```
+
+这一段代码是核心代码，将所有的拦截器和请求放在 **chain** 数组中，依次弹出借用 **Promise** 执行。
+
+实现调用：
+
+```js
+import axios from '../../src/index'
+
+axios.interceptors.request.use(config => {
+  config.headers.test += '1'
+  return config
+})
+axios.interceptors.request.use(config => {
+  config.headers.test += '2'
+  return config
+})
+axios.interceptors.request.use(config => {
+  config.headers.test += '3'
+  return config
+})
+axios.interceptors.response.use(res => {
+  res.data += '1'
+  return res
+})
+let interceptor = axios.interceptors.response.use(res => {
+  res.data += '2'
+  return res
+})
+axios.interceptors.response.use(res => {
+  res.data += '3'
+  return res
+})
+
+axios.interceptors.response.eject(interceptor)
+
+
+axios({
+  url: '/interceptor/get',
+  method: 'get',
+  headers: {
+    test: ''
+  }
+}).then((res) => {
+  console.log(res.data)
+})
+
+```
+
+返回的数据会多加 `13`,而 `headers.test` 等于 `321` 
+
+
+
+> 注意：请求拦截器越后面注册就越靠前，响应拦截器反之。因为请求拦截器用的是 **unshift**，响应拦截器用的是 **push**
+
+
+
+就写到这里吧。

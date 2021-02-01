@@ -1,0 +1,39 @@
+﻿`注意：我使用的是 Node 来搭建服务器 `
+## Xshell 
+直接打开 Xshell 的安装文件，一直 next（下一步），就可以了。（`注意：语言选择 Chinese(中文)`）
+安装好之后直接打开 Xshell
+
+![在这里插入图片描述](http://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/20190421183018756.png)
+![在这里插入图片描述](http://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/20190421183351598.png)
+![在这里插入图片描述](http://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/20190421183532969.png)
+点击连接
+![在这里插入图片描述](http://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/2019042118364130.png)
+![在这里插入图片描述](http://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/20190421183717342.png)
+填写上一章你在阿里云中设置的密码
+
+![在这里插入图片描述](http://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/20190421183949555.png)
+这样就可以远程控制你的服务器了
+## Xftp
+Xftp 的安装和 Xshell 类似，这里就不多赘述了 `（注意：语言要设置成中文）`
+我们一般使用的话，会在 Xshell 中打开 Xftp
+
+![在这里插入图片描述](http://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/20190421184518378.png)
+会弹出
+![在这里插入图片描述](http://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/2019042118464486.png)
+左边就是你的本地电脑，右边是你的云服务器
+直接将左边的文件拖到右边就可以进行文件上传了，这个非常好用
+## 安装 Node
+参考官网的安装方式：https://github.com/nodejs/help/wiki/Installation
+跟着文档安装准没错
+最后检查你的是否安装上
+```shell
+node -v
+```
+![在这里插入图片描述](http://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/20190421210953457.png)
+```shell
+npm -v
+```
+![在这里插入图片描述](http://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/20190421211043566.png)
+
+
+时间：2019年4月21日21:11:01

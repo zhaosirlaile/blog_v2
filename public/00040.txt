@@ -1,0 +1,382 @@
+## 在 RN 中如何使用 React-Redux
+
+其实，在 RN 中使用 React-Redux 和 React 中类似，可以说一模一样
+
+都是在根元素中使用，`<Provider>`来包裹根组件，导入 **store**，将 **store** 挂载在 `Provider` 上。
+
+代码的结构：
+
+```powershell
+.
+├── src                       # 程序源文件夹         
+│   ├── pages                 # 主要的页面，文件夹
+│   ├── navigation            # 页面的导航，文件夹
+│   ├── redux              	  # redux，文件夹
+│   └── App.js				  # 根组件，文件
+└── index.js             	  # 程序入口文件
+```
+
+**index.js** 代码：
+
+```js
+import {AppRegistry} from 'react-native';
+import App from './src/App';
+import {name as appName} from './app.json';
+
+AppRegistry.registerComponent(appName, () => App);
+```
+
+**App.js** 代码：
+
+```js
+import React, {Component} from 'react';
+import store from './redux/store';
+import AppNavigation from './navigation/AppNavigation';
+import {Provider} from 'react-redux';
+
+export default class App extends Component {
+  render() {
+    return (
+      <Provider store={store}>
+      	<AppNavigation />
+      </Provider>
+    );
+  }
+}
+```
+
+其中 **AppNavigation** 是导航（react-navigation）
+
+**AppNavigation.js** 代码：
+
+```js
+import {createAppContainer} from 'react-navigation';
+import {
+  createStackNavigator,
+  StackViewStyleInterpolator,	// 这个是一个页面的弹出的方向，安卓默认是从下到上，这个就将方向改为从左往右
+} from 'react-navigation-stack';
+
+import Book from '../pages/';	// 如果你的文件名为 index.js 会默认加载这个文件
+import Add from '../pages/otherPage/add';
+import AlterColor from '../pages/otherPage/alterColor';
+
+const stack = createStackNavigator(
+  {
+    Book: {
+      screen: Book,
+      navigationOptions: {
+        header: null,
+      },
+    },
+    Add: {
+      screen: Add,
+    },
+    AlterColor: {
+      screen: AlterColor,
+    },
+  },
+  {
+    transitionConfig: () => ({
+      screenInterpolator: StackViewStyleInterpolator.forHorizontal,
+    }),
+  },
+);
+
+export default createAppContainer(stack);
+```
+
+pages 文件夹的结构：
+
+```powershell
+├── index.js
+└── otherPage
+	├── add.js
+	└── alterColor.js
+```
+
+**index.js** 代码：
+
+主要是对 store 中的数据进行操作，而后在 add.js 和 altercolor.js 中看结果
+
+```js
+import React, {Component} from 'react';
+
+import {TextInput, Button, View, StyleSheet, Text} from 'react-native';
+
+import {connect} from 'react-redux';
+
+import {addCreator, alterColorCreator} from '../redux/actionCreator/test';
+
+class Index extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      inputValue: '',
+    };
+  }
+  render() {
+    const {navigation} = this.props;
+    return (
+      <View style={styles.container}>
+        <View style={styles.margin}>
+          <TextInput
+            onChangeText={value => {
+              this.setState({
+                inputValue: value,
+              });
+            }}
+            style={styles.input}
+          />
+        </View>
+
+        <View style={styles.margin}>
+          <Button
+            onPress={() => {
+              this.props.alterColor(this.state.inputValue);
+            }}
+            color="#841584"
+            title={'确认更改color'}
+          />
+        </View>
+        <View style={styles.margin}>
+          <Button
+            title={'+1'}
+            onPress={() => {
+              this.props.add();
+            }}
+          />
+        </View>
+
+        <View style={styles.margin}>
+          <Button
+            title={'跳转到add页面'}
+            onPress={() => {
+              navigation.navigate('Add');
+            }}
+          />
+        </View>
+        <View style={styles.margin}>
+          <Button
+            onPress={() => {
+              navigation.navigate('AlterColor');
+            }}
+            title={'跳转到alterColor页面'}
+          />
+        </View>
+      </View>
+    );
+  }
+}
+
+const styles = StyleSheet.create({
+  container: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    flex: 1,
+  },
+  input: {
+    borderColor: '#000',
+    borderBottomWidth: 1,
+    width: 300,
+  },
+  margin: {
+    marginTop: 10,
+    width: 300,
+  },
+});
+
+const mapDispatchToProps = (dispatch, ownProps) => {
+  return {
+    add: () => {
+      dispatch(addCreator());
+    },
+    alterColor: color => {
+      dispatch(alterColorCreator(color));
+    },
+  };
+};
+
+const mapStateToProps = (state, ownProps) => {
+  const {color, number} = state.test;
+  return {
+    color: color,
+    number: number,
+  };
+};
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(Index);
+
+```
+
+使用 **connect** 将 **mapStateToProps** 属性，**mapDispatchToProps** 方法，挂载到 **Index** 的 props 属性上
+
+**add.js** 代码：
+
+```js
+import React, {Component} from 'react';
+
+import {View, Text} from 'react-native';
+
+import {connect} from 'react-redux';
+
+class AlterColor extends Component {
+  constructor(props) {
+    super(props);
+  }
+  render() {
+    return (
+      <View>
+        <Text>{this.props.number}</Text>
+      </View>
+    );
+  }
+}
+
+const mapStateToProps = (state, ownProps) => {
+  const {color, number} = state.test;
+  return {
+    color: color,
+    number: number,
+  };
+};
+
+export default connect(
+  mapStateToProps,
+  null,
+)(AlterColor);
+```
+
+**alterColor.js** 代码：
+
+```js
+import React, {Component} from 'react';
+
+import {View, Text} from 'react-native';
+
+import {connect} from 'react-redux';
+
+class AlterColor extends Component {
+  constructor(props) {
+    super(props);
+    console.log(props);
+  }
+  render() {
+    return (
+      <View>
+        <Text style={{backgroundColor: this.props.color}}>Color</Text>
+      </View>
+    );
+  }
+}
+
+const mapStateToProps = (state, ownProps) => {
+  const {color, number} = state.test;
+  return {
+    color: color,
+    number: number,
+  };
+};
+
+export default connect(
+  mapStateToProps,
+  null,
+)(AlterColor);
+
+```
+
+**redux** 文件目录：
+
+![1574607186856](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1574607186856.png)
+
+**store.js** 代码：
+
+```js
+/**
+ * 创建仓库（store）
+ */
+import {createStore, applyMiddleware} from 'redux';
+import thunk from 'redux-thunk';
+
+import rootReducer from './reducer/rootReducer';
+
+export default createStore(rootReducer, applyMiddleware(thunk));
+```
+
+`注：redux-thunk 如果需要异步的操作的话使用`
+
+**/reducer/test.js** 代码：
+
+```js
+/**
+ * 测试一下 reducer
+ */
+const defaultState = {
+  color: 'green',
+  number: 1,
+};
+
+import {ADD, ALTER_COLOR} from '../actionTypes/test';
+
+export default (state = defaultState, action) => {
+  let newState = JSON.parse(JSON.stringify(state));
+  switch (action.type) {
+    case ALTER_COLOR:
+      newState.color = action.color;
+      return newState;
+    case ADD:
+      newState.number++;
+      return newState;
+  }
+  return state;
+};
+```
+
+**/actionTypes/test.js** 代码：
+
+```js
+export const ALTER_COLOR = 'alter_color';
+
+export const ADD = 'add';
+```
+
+**/actionCreator/test.js** 代码：
+
+```js
+import {ADD, ALTER_COLOR} from '../actionTypes/test';
+
+export const addCreator = () => {
+  return {
+    type: ADD,
+  };
+};
+
+export const alterColorCreator = color => {
+  return {
+    type: ALTER_COLOR,
+    color,
+  };
+};
+```
+
+效果图：
+
+index.js
+
+![1574607749586](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1574607749586.png)
+
+点击两次 `+1` ，跳转到 Add 页面
+
+![1574607815715](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1574607815715.png)
+
+inputValue 中输入 `#000` ，跳转到 alterColor 页面
+
+![1574607883563](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1574607883563.png)
+
+总结完毕：
+
+参考资料：
+
+- react-reudx官方：<https://redux.js.org/basics/usage-with-react>

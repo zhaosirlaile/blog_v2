@@ -1,0 +1,468 @@
+这一章主要实现接口的扩展
+
+## 接口扩展
+
+目录结构：
+
+![1589287968343](C:\Users\HP\AppData\Roaming\Typora\typora-user-images\1589287968343.png)
+
+**core 目录**：
+
+core 中的都是一些核心代码
+
+Axios.ts
+
+这个是新加的类，扩展接口，可以向 axios,axios.get,axios.post 那样使用
+
+```typescript
+import {AxiosRequestConfig, AxiosPromise,Method} from '../types'
+import dispatchRequest from './dispatchRequest';
+export default class Axios{
+    request(config:AxiosRequestConfig):AxiosPromise {
+        return dispatchRequest(config);
+    }
+
+    get(url:string,config?:AxiosRequestConfig) :AxiosPromise {
+        return this._requestMethodWithoutData('get',url,config);
+    }
+    delete(url:string,config?:AxiosRequestConfig) :AxiosPromise {
+        return this._requestMethodWithoutData('delete',url,config);
+    }
+    head(url:string,config?:AxiosRequestConfig) :AxiosPromise {
+        return this._requestMethodWithoutData('head',url,config);
+    }
+    options(url:string,config?:AxiosRequestConfig) :AxiosPromise {
+        return this._requestMethodWithoutData('options',url,config);
+    }
+    post(url:string,data:any,config?:AxiosRequestConfig) :AxiosPromise {
+        return this._requestMethodWithData('post',url,data,config);
+    }
+    put(url:string,data:any,config?:AxiosRequestConfig) :AxiosPromise {
+        return this._requestMethodWithData('put',url,data,config);
+    }
+    patch(url:string,data:any,config?:AxiosRequestConfig) :AxiosPromise {
+        return this._requestMethodWithData('patch',url,data,config);
+    }
+
+    _requestMethodWithoutData(method: Method, url: string, config?:AxiosRequestConfig) : AxiosPromise {
+        return this.request(Object.assign(config || {} , {
+            method,
+            url
+        }))
+    }
+    _requestMethodWithData(method: Method, url: string,data:any, config?:AxiosRequestConfig) : AxiosPromise {
+        return this.request(Object.assign(config || {} , {
+            method,
+            url,
+            data,
+        }))
+    }
+}
+```
+
+dispatchRequest.ts
+
+```typescript
+import {AxiosRequestConfig,AxiosPromise, AxiosResponse} from '../types';
+import xhr from './xhr';
+import { buildURL } from '../helpers/url';
+import {transformRequest,transformResponse} from '../helpers/data';
+import { processHeaders } from '../helpers/header';
+
+export default function dispatchRequst (config :AxiosRequestConfig) : AxiosPromise {
+    processConfig(config);
+    return xhr(config).then(res => {
+        return transformResponseData(res);
+    });
+}
+
+function processConfig(config: AxiosRequestConfig): void {
+    config.url = transformURL(config);
+    config.headers = transformHeaders(config);
+    config.data = transformRequestData(config);
+}
+
+function transformURL (config: AxiosRequestConfig) :string {
+    const {url,params} = config;
+    return buildURL(url!,params);
+}
+
+function transformRequestData (config: AxiosRequestConfig) : any {
+    return transformRequest(config.data);
+}
+
+function transformHeaders(config: AxiosRequestConfig):any {
+    const {headers={},data} = config;
+    return processHeaders(headers,data);
+}
+
+function transformResponseData(res:AxiosResponse):AxiosResponse {
+    res.data = transformResponse(res.data);
+    return res;
+}
+
+```
+
+xhr.ts
+
+```typescript
+import {AxiosRequestConfig,AxiosPromise,AxiosResponse} from '../types';
+import {parseHeaders} from '../helpers/header';
+import {createError} from '../helpers/error';
+
+export default function xhr(config:AxiosRequestConfig) : AxiosPromise {
+    return new Promise((reslove,reject)=> {
+        const {data = null,url,method='get',timeout,headers,responseType} = config;
+        const request = new XMLHttpRequest();
+        
+        if(responseType) request.responseType = responseType;
+
+        // 超时操作
+        if(timeout) request.timeout = timeout;
+    
+
+        request.open(method.toUpperCase(),url!,true);
+
+
+        request.onreadystatechange = function handleLoad() {
+            if(request.readyState !== 4) {
+                return;
+            }
+
+            if(request.status === 0) {
+                // 网络错误和超时错误时 status为 0
+                return;
+            }
+
+            const responseHeaders = parseHeaders(request.getAllResponseHeaders());
+            const responseDate = responseType !== 'text' ? request.response : request.responseText;
+            const response:AxiosResponse = {
+                data:responseDate,
+                status:request.status,
+                statusText: request.statusText,
+                headers: responseHeaders,
+                config,
+                request,
+            }
+            handleResponse(response);
+        }
+ 
+// 错误开始        
+        // 请求错误
+        request.onerror = function handleError() {
+            reject(createError('Network Error',config,null,request));
+        } 
+        // 超时错误
+        request.ontimeout = function handleTimeout() {
+            reject(createError(`Timeout of ${timeout} ms exceeded`,config,'ECONNABORTED',request));
+        }
+// 错误结束        
+        Object.keys(headers).forEach((name) => {
+            if(data === null && name.toLocaleLowerCase() === 'content-type') {
+                delete headers[name];
+            }
+            request.setRequestHeader(name,headers[name]);
+        })
+
+        request.send(data);
+
+        function handleResponse(response: AxiosResponse) : void{
+            if(response.status >= 200 && response.status < 300) {
+                reslove(response);
+            } else {
+                reject(createError(`Request failed with status code ${response.status}`,config,null,request,response));
+            }
+        }
+    })
+
+}
+```
+
+**helpers 目录**
+
+data.ts
+
+```typescript
+import {isPlainObject} from './util';
+export function transformRequest(data: any):any {
+    if(isPlainObject(data)) {
+        return JSON.stringify(data);
+    }
+    return data;
+}
+
+export function transformResponse(data: any):any {
+    if(typeof data === 'string') {
+        try{
+            data = JSON.parse(data);
+        } catch (e) {
+            // do nothing;
+        }
+    }
+    return data;
+}
+```
+
+error.ts
+
+```typescript
+import {AxiosRequestConfig,AxiosResponse} from '../types';
+
+export class AxiosError extends Error {
+    isAxiosError: boolean
+    config: AxiosRequestConfig
+    code?: string|null
+    request?:any
+    response?:AxiosResponse
+    constructor(
+        message:string,
+        config:AxiosRequestConfig,
+        code?: string|null,
+        request?:any,
+        response?: AxiosResponse,
+
+    ){
+        super(message);
+        this.config = config;
+        this.code = code;
+        this.request = request;
+        this.response = response;
+        this.isAxiosError = true;
+        Object.setPrototypeOf(this,AxiosError.prototype);
+    }
+}
+
+
+export function createError(
+    message:string,
+    config:AxiosRequestConfig,
+    code?: string|null,
+    request?:any,
+    response?: AxiosResponse,
+) {
+    return new AxiosError(message,config,code,request,response);
+}
+```
+
+header.ts
+
+```typescript
+import { isPlainObject } from "./util";
+
+function normalizeHeaderName(headers: any, normalizedName:string):void {
+    if(!headers) {
+        return
+    }
+    Object.keys(headers).forEach((name) => {
+        if(name !== normalizedName && name.toUpperCase() === normalizedName.toUpperCase()){
+            headers[normalizedName] = headers[name];
+            delete headers[name];
+        }
+    })
+}
+
+export function processHeaders (headers: any, data: any) :any {
+    normalizeHeaderName(headers, 'Content-Type');
+
+    if(isPlainObject(data)) {
+        if(headers && headers['Content-Type']) {
+            headers['Content-Type'] = 'application/json;charset=utf-8';
+        }
+    }
+
+    return headers;
+}
+
+export function parseHeaders(headers: string) :any {
+    let parsed = Object.create(null);
+    if(!headers) {
+        return parsed;
+    }
+    headers.split('\r\n').forEach((line) => {
+        let [key,val] = line.split(':');
+        key = key.trim().toLowerCase();
+        if(!key) {
+            return;
+        }
+        if(val) {
+            val = val.trim();
+        }
+        parsed[key] = val;
+    })
+    return parsed;
+}
+```
+
+url.ts
+
+```typescript
+/**
+ * 
+ * @string url url地址
+ * @any params 参数 (可选)
+ */
+import {isDate,isPlainObject} from './util';
+
+function encode(val: string) : string {
+    return encodeURIComponent(val)
+    .replace(/%40/g,'@')
+    .replace(/%3A/ig,':')
+    .replace(/%24/g,'$')
+    .replace(/%2C/ig,',')
+    .replace(/%20/g,'+')
+    .replace(/%5B/ig,'[')
+    .replace(/%5D/g,']')
+}
+
+export function buildURL(url: string, params?: any):string {
+    if(!params) return url;
+
+    const parts:string[] = []; 
+
+    Object.keys(params).forEach((key) => {
+        const val = params[key];
+        if(val === null || typeof val === 'undefined') {
+            return
+        }
+        let values = [];
+        if(Array.isArray(val)) {
+            values = val;
+            key += '[]';
+        }else {
+            values = [val];
+        }
+        values.forEach((val) => {
+            if(isDate(val)){
+                val = val.toISOString();
+            }else if(isPlainObject(val)) {
+                val = JSON.stringify(val);
+            }
+            parts.push(`${encode(key)}=${encode(val)}`);
+        })
+    })
+    let serializedParams = parts.join('&');
+    if(serializedParams) {
+        const markIndex = url.indexOf('#');
+        if(markIndex !== -1) {
+            url = url.slice(0,markIndex);
+        }
+        url += (url.indexOf('?') === -1 ? '?' : '&') + serializedParams;
+
+    }
+    return url;
+}
+```
+
+util.ts
+
+```typescript
+/**
+ * 公共方法
+ */
+const toString = Object.prototype.toString;
+
+export function isDate(val: any):val is Date {
+    return toString.call(val) === '[object Date]';
+}
+
+
+export function isPlainObject(val: any):val is Object {
+    return toString.call(val) === '[object Object]'
+}
+
+export function extend<T,U>(to: T,from: U): T & U {
+    for(const key in from) {
+        (to as T & U)[key] = from[key] as any;
+    }
+    return to as T & U;
+}
+```
+
+**types 目录**:
+
+```typescript
+export type Method = 'get' | 'GET' | 'delete' | 'Delete' | 'head' | 'HEAD' | 'options' | 'OPTIONS' | 'post' | 'POST' | 'put' | 'PUT' | 'patch' | 'PATCH';
+
+
+export interface AxiosRequestConfig {
+    url?: string,
+    method?:Method,
+    data?:any,
+    params?:any,
+    headers?:any,
+    responseType?:XMLHttpRequestResponseType,
+    timeout?:number,
+}
+
+export interface AxiosResponse {
+    status:number,
+    statusText: string,
+    headers: any,
+    config: AxiosRequestConfig,
+    request:any,
+    data:any,
+}
+
+export interface AxiosPromise extends Promise<AxiosResponse>{
+}
+
+export interface AxiosError extends Error {
+    isAxiosError: boolean,
+    config: AxiosRequestConfig,
+    code?: string | null,
+    request?:any;
+    response?:AxiosResponse,
+}
+
+export interface Axios {
+    request(config:AxiosRequestConfig): AxiosPromise
+    get(url:string,config?:AxiosRequestConfig): AxiosPromise
+    delete(url:string,config?:AxiosRequestConfig): AxiosPromise
+    head(url:string,config?:AxiosRequestConfig): AxiosPromise
+    options(url:string,config?:AxiosRequestConfig): AxiosPromise
+    post(url:string,data?:any,config?:AxiosRequestConfig): AxiosPromise
+    put(url:string,data?:any,config?:AxiosRequestConfig): AxiosPromise
+    patch(url:string,data?:any,config?:AxiosRequestConfig): AxiosPromise
+}
+
+export interface AxiosInstance extends Axios {
+    (config:AxiosRequestConfig):AxiosPromise,
+}
+```
+
+**axios.ts**
+
+```typescript
+import {AxiosInstance} from './types';
+import Axios from './core/Axios';
+import {extend} from './helpers/util';
+
+function createInstance():AxiosInstance{
+    const context = new Axios();
+    const instance = Axios.prototype.request.bind(context);
+
+    extend(instance,context);
+
+    return instance as AxiosInstance;
+}
+
+const axios = createInstance();
+
+
+export default axios;
+```
+
+**index.ts**
+
+```typescript
+import axios from './axios';
+
+
+export * from './types';
+
+export default axios;
+```
+
+
+
+以上就是到现在的全代码了，下一章还要写拦截器，就这样了

@@ -1,0 +1,173 @@
+这一章节，主要是写取消请求
+
+目录：
+
+![1590913921136](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1590913921136.png)
+
+## 取消请求
+
+有些场景下，我们希望能主动取消请求，比如常见的搜索框案例，在用户输入过程中，搜索框的内容也在不断变化，正常情况每次变化都应该向服务器发送一次请求，但在当用用户输入过快的时候，我们不希望每次变化请求都发出去，通常一个解决方案是前端用 debounce 的方案，比如延时 200 ms 发送请求，这样当用户连续输入的字符，只要输入间隔小于 200 ms，前面输入的字符都不会发请求。但是还有一种极端情况下，后端接口很慢，比如超过1s才能响应，这个时候即使多了 200ms 的debounce，但是在我慢慢输入（每个输入间隔超过200ms）的情况下，在前面的请求没有响应前，也有可能发出多个请求，因为接口的响应时长是不定的，如果先发出去的请求响应时比后出发的请求要久一些，后请求的响应先回来，现请求的响应后回来，就会出现起请求响应结果覆盖后面请求的响应结果的情况，那么就乱了。因此在这个情况下，我们除了做 debounce，还希望后面的请求发出去的时候，如果前面的请求还没有响应，我们可以把前面的请求取消。
+
+
+
+我修改了 `axios.ts` 文件
+
+```typescript
+// ...
+import CancelToken from './cancel/CancelToken';
+import Cancel, { isCancel } from './cancel/Cancel';
+
+// ...
+axios.CancelToken = CancelToken;
+axios.Cancel = Cancel;
+axios.isCancel = isCancel;
+// ...
+```
+
+增加了 `cancel` 目录
+
+添加了 `cancel/CancelToken.ts` 文件
+
+```typescript
+import { CancelExecutor, CancelTokenSource, Canceler } from "../types"
+import Cancel from './Cancel';
+interface ResolvePromise{
+    (reason?:Cancel):void
+}
+
+export default class CancelToken{
+    promise:Promise<Cancel>
+    reason?:Cancel
+
+    constructor(executor:CancelExecutor){
+        let resolvePromise:ResolvePromise
+
+
+        this.promise = new Promise<Cancel>(resolve => {
+            resolvePromise = resolve;
+        })
+
+        executor(message=>{
+            if(this.reason) {
+                return;
+            }
+            this.reason = new Cancel(message);
+            resolvePromise(this.reason)
+        })
+    }
+
+    throwIfRequested() {
+        if(this.reason) {
+            throw this.reason;
+        } 
+    }
+
+    static source():CancelTokenSource {
+        let cancel!: Canceler
+        const token = new CancelToken((c: Canceler) => {
+            cancel = c;
+        })
+        return {
+            cancel,
+            token,
+        }
+    }
+}
+```
+
+这里巧妙的使用了 `Promise` ，通过后面的 `xhr.ts` 文件中进行的 `.then` 来调用函数。
+
+添加了 `cancel/Cancel.ts` 文件
+
+```typescript
+export default class Cancel{
+    message?: string
+    constructor (message?:string) {
+        this.message = message;
+    }
+}
+
+export function isCancel(value: any):boolean{
+    return value instanceof Cancel
+}
+```
+
+其中 `Cancel` 类是 `CancelToken`  的类类型 
+
+修改`core/dispatchRequest.ts` 文件
+
+```typescript
+// ...
+import { flattenHeaders } from '../helpers/header';
+// ...
+export default function dispatchRequst (config :AxiosRequestConfig) : AxiosPromise {
+    throwIfCancellationRequested(config);	// 放在最前面
+	// ...
+}
+// ...
+function throwIfCancellationRequested (config: AxiosRequestConfig) : void {
+    if(config.cancleToken) {
+        config.cancleToken.throwIfRequested();
+    }
+}
+```
+
+修改 `xhr.ts` 文件
+
+```typescript
+// ...
+if(cancleToken) {
+    cancleToken.promise.then(reason => {
+        request.abort()
+        reject(reason)
+    })
+}
+request.send(data);
+// ...
+```
+
+修改 `types/index.ts`文件
+
+```typescript
+export interface AxiosRequestConfig {
+	// ...
+    cancleToken?:CancelToken,
+	// ...
+}
+// ...
+export interface CancelToken{
+    promise: Promise<Cancel>,
+    reason?: Cancel,
+    throwIfRequested():void,
+}
+export interface Canceler{
+    (message?:string):void,
+}
+export interface CancelExecutor{
+    (cancel: Canceler):void,
+}
+
+export interface CancelExecutor{
+    (cancel:Canceler):void
+}
+
+export interface CancelTokenSource{
+    token: CancelToken,
+    cancel: Canceler,
+}
+
+export interface CancelTokenStatic{
+    new(executor:CancelExecutor):CancelToken,
+    source():CancelTokenSource,
+}
+
+export interface Cancel{
+    message?:string,
+}
+
+export interface CancelStatic{
+    new(message?:string):Cancel,
+}
+```
+
+就写这么多了！

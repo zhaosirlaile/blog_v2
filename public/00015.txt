@@ -1,0 +1,1433 @@
+## 计算属性
+
+### 什么是计算属性
+
+在插值表达式中使用表达式是非常便利，但是实际进行开发中我们不可能把插值表达式写的很复杂。如果把表达式写的过于复杂，这就增加了维护的难度。这就是为什么 Vue.js 将绑定表达式限制为一个表达式。如果需要多于一个表达式的逻辑，应当使用计算属性。
+例子：
+
+```html
+<div id="app">
+    {{ reverseText }}
+</div>
+<script>
+    let app  = new Vue({
+        el:'#app',
+        data:{
+            text:'hello vue'
+        },
+        computed:{
+            reverseText:function(){
+                return this.text.split(' ').reverse().join(' ');
+            }
+        }
+    })
+</script>
+```
+
+在 Vue 的实例中可以使用 `computed` 对象，来进表达式的设置,而在每一个表达式中实际上都包含 `getter` 和 `setter` 。
+例子：
+
+```html
+<div id="app">
+    姓名：{{ fullName }}
+</div>
+<script>
+    let app  = new Vue({
+        el:'#app',
+        data:{
+            firstName: 'Petor',
+            lastName: 'Green'
+        },
+        computed:{
+            fullName: {
+                get: function () {
+                    return this.firstName + " " + this.lastName;
+                },
+                set: function (name) {
+                    let names = name.split(' ');
+                    this.firstName = names[0];
+                    this.lastName = names[1];
+                }
+            }
+        }
+    })
+</script>
+```
+
+如以上例子所示：
+当我们访问 fullname 表达式时：
+
+- `getter` ： 在读取属性时调用函数,当我们调用 `app.fullName` 触发该函数
+- `setter` ： 在修改属性时调用函数，当我们执行 `app.fullName ='John Doe1'` 时，触发该函数
+
+## 过渡 & 动画
+
+vue 中提供了一个 `transition` 的一个元素，可以给任何元素和组件添加进入/离开过渡，配合：
+
+- 使用 `v-if`
+- 使用 `v-show`
+- 动态组件
+- 组件根节点
+
+进行使用
+
+html 代码：
+
+```html
+<div id="vue">
+  <button v-on:click="show = !show">
+    Toggle
+  </button>
+  <transition>
+    <p v-if="show">hello</p>
+  </transition>
+  <!-- 将你要过渡的元素或组件包裹在 transition 元素内 -->
+</div>
+```
+
+js 代码：
+
+```js
+new Vue({
+  el: '#vue',
+  data: {
+    show: flase
+  }
+})
+```
+
+css 代码：
+
+```css
+.v-enter-active,
+.v-leave-active {
+  transition: all .7s ease;
+}
+.v-enter,
+.v-leave-to {
+  opacity: 0;
+}
+```
+
+### 过渡类名
+
+在进入/离开的过渡中，会有 6 个 class 切换。
+
+1. `v-enter`：定义进入过渡的开始状态。
+2. `v-enter-active`：定义进入过渡生效时的状态。在整个进入过渡的阶段中应用，在元素被插入之前生效，在过渡/动画完成之后移除。这个类可以被用来定义进入过渡的过程时间，延迟和曲线函数。
+3. `v-enter-to`: **2.1.8版及以上** 定义进入过渡的结束状态。在元素被插入之后下一帧生效 (与此同时 `v-enter` 被移除)，在过渡/动画完成之后移除。
+4. `v-leave`: 定义离开过渡的开始状态。在离开过渡被触发时立刻生效，下一帧被移除。
+5. `v-leave-active`：定义离开过渡生效时的状态。在整个离开过渡的阶段中应用，在离开过渡被触发时立刻生效，在过渡/动画完成之后移除。这个类可以被用来定义离开过渡的过程时间，延迟和曲线函数。
+6. `v-leave-to`: **2.1.8版及以上** 定义离开过渡的结束状态。在离开过渡被触发之后下一帧生效 (与此同时 `v-leave` 被删除)，在过渡/动画完成之后移除。
+
+![在这里插入图片描述](http://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/20190428161953600.png)
+
+对于这些在过渡中切换的类名来说，如果你使用一个没有名字的 `<transition>`，则 `v-` 是这些类名的默认前缀。如果你使用了 `<transition name="my">`，那么 `v-enter` 会替换为 `my-enter`。
+
+`v-enter-active` 和 `v-leave-active` 可以控制进入/离开过渡的不同的缓和曲线。
+
+html 代码：
+
+```html
+<div id="vue">
+    <input type="button" value="toggle" @click='show=!show'>
+    <transition name = 'animate'>
+        <p v-show='flag'>这是一个 hello vue</p>
+    </transition>
+</div>
+```
+
+css 代码：
+
+```css
+.animate-enter,
+.animate-leave-to {
+    opacity: 0;
+    transform: translateX(100px);
+}
+.animate-enter-active,
+.animate-leave-active {
+    transition: all 1s ease;
+}
+```
+
+js 代码：
+
+```js
+let vue = new Vue({
+    el:'#vue',
+    data:{
+        show:false,
+    }
+})
+```
+
+### 借用第三方类实现动画
+
+这里用的第三方的 animate 类
+
+网址：<https://daneden.github.io/animate.css/>
+
+在官网上你可以看到他的很多类，及其动画效果。
+
+#### 安装
+
+```shell
+npm install animate
+```
+
+#### 引用
+
+使用CDNJS的CDN托管版本
+
+```html
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.7.0/animate.min.css">
+```
+
+或
+
+```html
+<link rel = “ stylesheet ”  href = “ animate.min.css ”>
+```
+
+#### 使用
+
+这里一个 animate 中的 类 为例：
+
+```html
+<div id="vue">
+    <button @click='flag=!flag'>toggle</button>
+    <transition enter-active-class='fadeInUp' leave-active-class='flipOutX' :duration='1000'>
+        <p v-show='flag' class="animated">hello vue</p>
+    </transition>
+</div>
+```
+
+js 代码：
+
+```js
+let vue = new Vue({
+    el:'#vue',
+    data:{
+        flag:false,
+    },
+    methods:{
+
+    }
+})
+```
+
+`注意：`
+
+- 在 `transition` 元素中加入 `enter-active-class` 和 `leave-active-class` 分别表示进场动画、离场动画
+
+- `:duration='ms'` 表示统一设置进场和离场的动画持续时间（`ms 表示 毫秒值，直接填写数值，不要加单位`）
+
+- `:duratoin='{leave:ms,enter:ms}'` 表示分别设置进场和离场的动画持续时间
+
+- 想要动画生效，必须在你想生效的动画元素上加上一个类`class="animated"`，或者在 `transition` 元素中的 `enter-active-class` 和 `leave-active-class` 分别加上 `animated`，例如
+
+  - ```html
+    <transition enter-active-class='animated fadeInUp' leave-active-class='animated flipOutX' :duration='1000'>
+        <p v-show='flag'>hello vue</p>
+    </transition>
+    ```
+
+
+
+### 钩子函数
+
+动画中使用钩子函数需要借用 `v-on:` 进行事件绑定，例如：
+
+```html
+<transition
+  v-on:before-enter="beforeEnter"
+  v-on:enter="enter"
+  v-on:after-enter="afterEnter"
+  v-on:enter-cancelled="enterCancelled"
+
+  v-on:before-leave="beforeLeave"
+  v-on:leave="leave"
+  v-on:after-leave="afterLeave"
+  v-on:leave-cancelled="leaveCancelled">
+</transition>
+```
+
+以上代码可以看到一个动画的整个生命周期
+
+- `before-enter` ：表示元素的动画开始之前的初始化样式（动画没有开始）
+- `enter` ：表示动画开始之后的样式，一般定义动画的结束样式
+
+```js
+methods: {
+  // --------
+  // 进入中
+  // --------
+
+  beforeEnter: function (el) {
+    // ...
+  },
+  // 当与 CSS 结合使用时
+  // 回调函数 done 是可选的
+  enter: function (el, done) {
+    // ...
+    done()
+  },
+  afterEnter: function (el) {
+    // ...
+  },
+  enterCancelled: function (el) {
+    // ...
+  },
+
+  // --------
+  // 离开时
+  // --------
+
+  beforeLeave: function (el) {
+    // ...
+  },
+  // 当与 CSS 结合使用时
+  // 回调函数 done 是可选的
+  leave: function (el, done) {
+    // ...
+    done()
+  },
+  afterLeave: function (el) {
+    // ...
+  },
+  // leaveCancelled 只用于 v-show 中
+  leaveCancelled: function (el) {
+    // ...
+  }
+}
+```
+
+`注意：`
+
+- 要想有动画有效必须在事件的顶端加上，`el.offsetTop` 或 `el.offsetHeight`
+
+  - ```js
+    enter(el){
+        el.offsetWidth;//el.offsetHeight 也是可以的
+    
+        el.style.transform = 'translate(150px,450px)';
+        el.style.transition = 'all 1s ease';
+    }
+    ```
+
+- 在 `enter` 和 `leave` 中必须使用 `done` 进行回调，因此过渡会立即完成；否则，它们将被同步调用，会有 1 到 2 秒的卡顿
+
+  - ```js
+    enter(el,done){
+        el.offsetWidth;//el.offsetHeight 也是可以的
+    
+        el.style.transform = 'translate(150px,450px)';
+        el.style.transition = 'all 1s ease';
+        done();
+    }
+    ```
+
+- 构造函数应用场景一般是半场动画
+
+### 列表
+
+在列表过渡的时候，如果是通过 `v-for` 循环渲染出来的，不能使用 `transition` 包裹，需要是用 `transition-group` 进行包裹
+
+html 代码：
+
+```html
+<div id="vue">
+    <label for="">
+        ID:
+        <input type="text" v-model='id'>
+    </label>
+    <label for="">
+        NAME:
+        <input type="text" v-model='name'>
+    </label>
+    <button @click='add'>ADD</button>
+    <ul>
+        <transition-group>
+            <li @click='del(index)' v-for='(item,index) in arg' :key='item.id'>id是:{{ item.id }} ----  name是:{{ item.name }}</li>
+        </transition-group>
+    </ul>
+</div>
+```
+
+css 代码：
+
+```css
+li {
+    border: 1px solid black;
+    margin: 5px;
+    list-style: none;
+}
+li:hover {
+    background-color: deepskyblue;
+    transition: all .5s ease;
+}
+.v-enter,
+.v-leave-to {
+    width: 100%;
+    opacity: 0;
+    transform: translateY(100px)
+}
+.v-enter-to,
+.v-leave {
+    opacity: 1;
+    transition: all 1s ease;
+}
+.v-move {
+    transition: all .6s ease;
+}
+.v-leave-active {
+    position: absolute;
+}
+```
+
+js 代码：
+
+```js
+let vue = new Vue ({
+    el : '#vue',
+    data : {
+        id:'',
+        name:'',
+        arg:[
+            {id:1,name:'赵高'},
+            {id:2,name:'嬴政'},
+            {id:3,name:'貂蝉'},
+            {id:4,name:'毕福剑'}
+        ]
+    },
+    methods:{
+        add(){
+            this.arg.push({
+                id:this.id,
+                name:this.name,
+            })
+            this.id = this.name=''
+        },
+        del(index) {
+            this.arg.splice(index,1);
+        }
+    }
+})
+```
+
+`注意：`
+
+- 使用 `v-for` 进行渲染时，最好加上 `:key` 属性，否则会出现不好的小问题
+- `.v-move` 和 `.v-leave-active` 配合使用，可以实现列表后续的元素的过渡
+
+### 初始渲染的过渡
+
+可以用给要过渡的元素添加 `appear` 属性，可以实现页面刚刚加载完之后的过渡效果
+
+```html
+<transition-group appear tag='ul' >
+<!-- your code -->
+</transition-group>
+```
+
+`注意:`
+
+给 `transition-group` 元素加上 `trg='ul'` 表示将  `transition-group` 元素渲染为指定的标签元素，否则默认渲染为 `span` 标签
+
+
+
+## 组件
+
+### 什么是组件
+
+就是为了拆分 Vue 实例的代码量的，能够让我们以不同的组件，来划分不同的功能模块，将来我们需要什么样的功能，就可以去调用对应的组件即可。
+
+那组件化和模块化有什么不同：
+
+- 模块化：是从代码逻辑的角度进行划分的；方便代码分层开发，保证每个功能模块的职能单一；
+- 组件化：是从UI界面的角度进行划分的；前端的组件化，方便UI主键的重用
+
+### 全局注册
+
+使用组件时，直接把 `组件名称` 以 `HTML标签` 的形式引入到是 `Vue实例对象` 标签中，否则没有作用
+
+`注意：`
+
+- 组件名称是不支持驼峰命名的，比如将 `loginIN` 改为 `login-in` ，后面有例子
+- 无论是那种方式创建出来的组件，组件的 `template` 属性指向的模板内容，必须有且只能有唯一的一个根元素
+
+#### Vue.exptend 配合 Vue.component
+
+```html
+<div id="vue">
+    <组件名称></组件名称>
+</div>
+<script>
+    let 组件模板对象 = Vue.extend({
+        template:`<button>登录</button>`
+    })
+
+    Vue.component('组件名称',组件模板对象)
+    let vum = new Vue ({
+        el:'#vue',
+        data :{
+
+        }
+    })
+</script>
+```
+
+例子：
+
+```html
+<div id="vue">
+    <login-in></login-in>
+</div>
+<script>
+    let zhujian = Vue.extend({
+        template:`<button>登录</button>`
+    })
+
+    Vue.component('login-in',zhujian)
+    let vum = new Vue ({
+        el:'#vue'
+    })
+</script>
+```
+
+#### Vue.component
+
+直接在 `Vue.component` 第二个参数中写入一个对象，该对象就是上一例子中的 `Vue.extend` 中的对象
+
+```html
+<div class="" id="vue">
+    <login-in></login-in>
+</div>
+<script>
+    Vue.component('login-in',{
+        template:`<button>登录</button>`
+    })
+    let vum = new Vue ({
+        el:'#vue',
+    })
+</script>
+```
+
+#### template 元素
+
+在被控制的 Vue 元素外，直接使用 `<template></template` 标签，而组件就放在其中，写HTML结构非常方便（`推荐`）
+
+```html
+<div id="vue">
+    <egg></egg>
+</div>
+<template id='id'>
+    <div>你是狗</div>
+</template>
+<script>
+    Vue.component('egg',{
+        template:'#id'
+    })
+    let vue = new Vue ({
+        el : '#vue'
+    })
+</script>
+```
+
+### 私有注册（局部注册）
+
+在 Vue 实例对象的内部有一个对象 `components` ，专门用来定义实例对象内部的私有组件的，不可以在别的实例对象中使用
+
+用法一
+
+```html
+<div id="vue">
+    <egg></egg>
+</div>
+<script>
+    let vue = new Vue ({
+        el : '#vue',
+        components: {
+            egg: {
+                template:`<div>你是狗</div>`
+            }
+        }
+    })
+</script>
+```
+
+用法二：（和全局注册的第三种方法类似）
+
+```html
+<div id="vue">
+    <egg></egg>
+</div>
+<template id="egg">
+    <div>你是狗</div>
+</template>
+<script>
+    let vue = new Vue ({
+        el : '#vue',
+        components: {
+            egg: {
+                template:`#egg`
+            }
+        }
+    })
+</script>
+```
+
+### 组件中的data
+
+组件中的 data 必须是一个方法，并且该方法还必须返回一个对象。
+
+```html
+<div id="vue">
+    <egg></egg>
+</div>
+<template id="egg">
+    <div>{{ msg }}</div>
+</template>
+<script>
+    let vue = new Vue ({
+        el : '#vue',
+        components: {
+            egg: {
+                template:`#egg`,
+                data:function(){
+                    return {
+                        msg:'你好 vue'
+                    }
+                }
+            }
+        }
+    })
+</script>
+```
+
+如果组件中的 data 必须是一个方法中返回一个对象的话，不可以通过引用外部对象，否则如果渲染多个元素对象出来，那么这些元素对象是没有自己的私有对象
+
+```html
+<div id="vue">
+    <egg></egg>
+    <egg>
+        </div>
+    <template id="egg">
+        <div>
+            <button @click = 'autoAdd'>click-add</button>
+            <div >{{ msg }}</div>
+        </div>
+    </template>
+    <script>
+        let vue = new Vue ({
+            el : '#vue',
+            components: {
+                egg: {
+                    template:`#egg`,
+                    data:function(){
+                        return {
+                            msg:1,
+                        }
+                    },
+                    methods : {
+                        autoAdd(){
+                            this.msg ++;
+                        }
+                    }
+                }
+            }
+        })
+    </script>
+```
+
+### :is
+
+`:is` 属性，用来指定要展示的组件名称，可以用在组件的切换上。
+
+```html
+<div id="vue">
+    <a href="#" @click='toggle="first"'>first</a>
+    <a href="#" @click='toggle="second"'>second</a>
+    <component :is='toggle'></component>
+</div>
+<script>
+    Vue.component('first',{
+        template:'<P>我是第一个组件</p>'
+    })
+    Vue.component('second',{
+        template:'<p>我是第二个组件</p>'
+    })
+    let vue = new Vue({
+        el: '#vue',
+        data: {
+            toggle: 'first',
+        }
+
+    })
+</script>
+```
+
+使用 `:is` 属性进行切换时，一般使用 `<component>` 进行搭配
+注意：`:is` 属性中使用
+
+- `:is="'first'"`, `'first'` 表示一个字符串
+- `:is="first"` ，`first` 表示一个变量
+
+### props 传递数据
+
+#### 什么是 props ？
+
+组件不仅仅是要把模板的内容进行复用，更重要的是组件间要进行通信。通常父组件的模板中包含子组件，父组件要正向地向子组件传递数据或参数，子组件接收到后根据参数的不同来渲染不同的内容或执行操作。这个正向传递数据的过程就是通过 props 来实现的，使用 `v-bind` 和 `v-model` 进行绑定来父级的动态数据。
+props 中的数据可以是两种：
+
+- 字符串数组
+- 对象
+
+`字符串数组`例子：
+
+```html
+<div id="app">
+    <my-component warning-text='提示信息'></my-component>
+</div>
+<script>
+    Vue.component('my-component',{
+        props: ['warningText'],
+        template: '<div> {{ warningText }} </div>'
+    });
+    let app = new Vue ({
+        el: '#app',
+    })
+</script>
+```
+
+对象例子：
+
+```html
+<div id="app">
+    <input type="text" v-model='parentMessage'>
+    <my-component :message='parentMessage'></my-component>
+</div>
+<script>
+    Vue.component('my-component',{
+        props: ['message'],
+        template:'<div>{{ message }}</div>'
+    });
+    let app = new Vue ({
+        el: '#app',
+        data: {
+            parentMessage: ''
+        }
+    })
+</script>
+```
+
+`注意：`
+
+- 如果你要直接传递数字、布尔值、数组、对象，而且不使用 v-bind，那么传递的仅仅是字符串。
+- 在JavaScript中对象和数组是引用类型，指向同一个内存空间，所以 props 是对象和数组时，在子组件内改变是会影响父组件的。
+
+`data` 与 `props` 的区别：
+
+- props 中的数据与组件 data 函数 return 的数据主要区别就是 props 的来自父级，而 data 中的是组件自己的数据
+- 组件中的 props 中的数据是只读的，无法重新赋值；组件中 data 中的数据是可读可写的，
+- 这两种数据都可以在模板 template 及计算属性 computed 和方法 methods 中使用.
+
+### 组件通信
+
+组件关系可分为：
+
+- 父子组件通信
+- 兄弟组件通信
+- 跨级组件通信
+
+如图所示：
+
+![在这里插入图片描述](http://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/20190428162211968.png)
+
+#### 自定义事件
+
+当子组件需要向父组件传递数据时，就要用到自定义事件。Vue 组件有一套模式，子组件用 `$emit()` ，`emit`表示触发的含义，用来触发事件，父组件可以直接在子组件的自定义标签上使用 `v-on` 来监听子组件触发的自定义事件
+
+子组件调用父组件中的方法，并向父组件传递参数例子：
+
+`$emit()的用法`
+
+```html
+<div id="vue">
+    <子组件名称 @自定义的事件名称='父组件中定义的函数'>
+
+    </子组件名称>
+    <script>
+    Vue.component('子组件名称',{
+        template:'<button @click='子组件中的定义的函数'>点我，触发父组件的事件</button>',
+        methods: {
+            子组件中的定义的函数(){
+                this.$emit('自定义的事件名称')
+            }
+        }
+    })
+    let vue = new Vue({
+        el: '#vue',
+        methods: {
+            // your function
+        }
+    })
+</script>
+</div>
+```
+
+`注意：`
+函数名带括号与不带括号的区别:
+
+- v-on:自定义的事件名称='函数名'
+  - 表示将整个函数传递过去
+- v-on:自定义的事件名称='函数名()'
+  - 表示将函数所返回的值传递过去
+
+例子：
+
+```html
+<div id="vue">
+    <comp @fun='show'>
+
+    </comp>
+</div>
+
+
+<template id='tpl'>
+    <button @click='emit'>点我，触发父组件的事件</button>
+</template>
+<script>
+    Vue.component('comp',{
+        template:'#tpl',
+        methods: {
+            emit(){
+                this.$emit('fun',123)
+            }
+        }
+    })
+    let vue = new Vue({
+        el: '#vue',
+        data: {},
+        methods: {
+            show(str) {
+                console.log('子组件调用我了' + str)
+            }
+        }
+    })
+</script>
+```
+
+### slot 分发内容
+
+`slot` 是 vue 中提供的一个标签元素，当需要让组件组合使用，混合父组件的内容与子组件的模板时，就会用到 `slot` ，这个过程叫作内容分发（transclusion）。
+父组件模板的内容是在父组件作用域内编译，子组件模板的内容是在子组件作用域内编译。
+
+`slot` 分发的内容，作用域是在父组件上的
+
+#### 单个 slot
+
+```html
+<div id="vue">
+    <componet-son>
+        <p>您好</p>
+    </componet-son>
+</div>
+<script>
+    Vue.component('componet-son',{
+        template:`
+        <div>
+            <slot>
+                <p>如果父组件没有插入内容，我将作为默认出现</p>
+            </slot>
+        </div>`
+    });
+
+    let app = new Vue({
+        el: '#vue',
+    })
+</script>
+```
+
+`注意：`
+
+模板内定义了一个 `<slot>` 元素，并且用一个 `<p>` 作为默认的内容， 在父组件没有使用 slot(插槽) 时，会渲染这段默认的文本；如果写入了 slot， 那就会替换模板中的 `<slot>` 元素
+
+#### 具名 slot
+
+```html
+<div id="app">
+    <child-componet>
+        <h2 slot='header'>标题</h2>
+        <p>分发的内容</p>
+        <p>更多分发的内容</p>
+        <div slot='footer'>底部信息</div>
+    </child-componet>
+</div>
+<script>
+    Vue.component('child-componet',{
+        template:`
+        <div class='container'>
+            <div class='header'>
+                <slot name='header'></slot>
+            </div>
+            <div class='main'>
+                <slot></slot>
+            </div>
+            <div class='footer'>
+                <slot name='footer'></slot>
+            </div>
+        </div>`
+    });
+
+    let app = new Vue({
+        el: '#app',
+    })
+</script>
+```
+
+注意：
+
+- 模板中在 `<div class＝'main'><slot>` 元素内的 `slot` 元素没有使用 name 特性， 它将作为默认 slot 出现，父组件没有使用 slot 特性的元素与内容都将出现在这里
+- `<child-componet>` 如果没有指定默认的 slot 特性，父组件内多余的内容片段都将被抛弃。
+
+#### 作用域插槽
+
+
+
+#### 访问 slot
+
+使用 `$slots` 来访问被 slot 分发的内容的方法
+
+```html
+<script>
+    Vue.component('child-componet',{
+        template:`
+        <div class='container'>
+            <div class='header'>
+                <slot name='header'></slot>
+            </div>
+            <div class='main'>
+                <slot></slot>
+            </div>
+            <div class='footer'>
+                <slot name='footer'></slot>
+            </div>
+        </div>`,
+        mounted: function() {
+            let header = this.$slots.header;
+            let main = this.$slots.default;
+            let footer = this.$slots.footer;
+            console.log(footer);
+            console.log(footer[0].elm.innerHTML);
+        }
+    });
+    let app = new Vue({
+        el: '#app',
+    })
+</script>
+```
+
+## ref 获取 DOM 元素 或 子组件
+
+`ref` (reference)被用来给元素或子组件注册引用信息。引用信息将会注册在父组件的 `$refs` 对象上。如果在普通的 DOM 元素上使用，引用指向的就是 DOM 元素；如果用在子组件上，引用就指向组件
+
+获取DOM元素例子：
+
+```html
+<div id="vue">
+    <p ref="one" @click='printOne'>我是第一个p标签</p>
+    <p ref="two">我是第二个p标签</p>
+    <p ref="three">我是第三个p标签</p>
+    <p ref="four">我是第四个p标签</p>
+</div>
+<script>
+let vue = new Vue({
+    el: '#vue',
+    methods: {
+        printOne(){
+            console.log(this.$refs.one)
+        }
+    }
+})
+</script>
+```
+
+获取子组件的例子：
+
+```html
+<div id="vue">
+    <com ref='com'></com>
+    <button @click='printOne'>获取子组件的数据</button>
+</div>
+<template   id ='tpl'>
+    <div>
+        <p>我是第一个p标签</p>
+        <p>我是第二个p标签</p>
+        <p>我是第三个p标签</p>
+        <p>我是第四个p标签</p>
+    </div>
+</template>
+<script>
+    Vue.component('com',{
+        template:'#tpl',
+        data: function(){
+            return {
+                str: 'hello'
+            }
+        }
+    })
+let vue = new Vue({
+    el: '#vue',
+    methods: {
+        printOne(){
+            console.log(this.$refs.com.str)
+        }
+    }
+})
+</script>
+```
+
+用这个 `ref` 获取子组件的对象是非常好用的
+
+## 路由
+
+### 什么是路由
+
+1. `后端路由`：对于普通的网站，所有的超链接都是URL地址，所有的URL地址都对应服务器上对应的资源；
+2. `前端路由`：对于单页面应用程序来说，主要通过URL中的hash(#号)来实现不同页面之间的切换，同时，hash有一个特点：HTTP请求中不会包含hash相关的内容；所以，单页面程序中的页面跳转主要用hash实现，其实就是 `<a>` 标签中的锚点；
+3. 在单页面应用程序中，这种通过hash改变来切换页面的方式，称作前端路由（区别于后端路由）；
+
+### 安装路由
+
+使用 npm 安装
+
+```shell
+npm install vue-router
+```
+
+直接下载 CDN
+链接：https://unpkg.com/vue-router/dist/vue-router.js
+
+### 使用路由
+
+使用方法和前面的 `vue-resource` 一样
+
+```html
+    <script src="./lib/vue-2.4.0.js"></script>
+    <script src="./lib/vue-router-3.0.1.js"></script>
+```
+
+当页面载入了 `vue-router` 插件时，在 window 全局对象中，就有了一个路由的构造函数，叫做 `VueRouter`
+
+例子：
+
+```html
+<div id="vue">
+    <a href="#/login">登录</a>
+    <a href="#/register">注册</a>
+    <router-view>
+    </router-view>
+</div>
+<script>
+    let login = {
+        template: '<h1>登录组件</h1>'
+    }
+    let register = {
+        template: '<h1>注册组件</h1>'
+    }
+    let myRouter = new VueRouter({
+        routes:[
+            {
+                path: '/',
+                redirect: '/login'
+            },
+            {
+                path: '/login',
+                component: login
+            },
+            {
+                path: '/register',
+                component: register
+            }
+        ]
+    });
+
+    let vue = new Vue({
+        el : '#vue',
+        router: myRouter,    //关联路由规则对象，注册到 vue 实例上，用来监听URL地址，然后展示对应的组件
+    })
+</script>
+```
+
+`注意：`
+
+- 我们可以使用 `VueRouter` 构造函数构造出一个路由出来,而该构造函数可以传入一个对象，对象中有一个 `routes` 表示 `路由匹配规则` ，该属性是一个对象数组，而对象数组中的每一个对象表示的就是一个路由，其中的对象必须包含两个属性，分别是
+  - 第一个属性 `path` ，表示监听路由的链接地址，注意该属性是一个字符串
+  - 第二个属性 `component` ，表示如果路由匹配前面的 path ,则显示 `component` 属性对应的那个组件,注意属性必须是一个模板对象，不能是组件的引用名称
+- 如上面的代码所示： `routes` 中第一条`路由匹配规则`中有一个 `redirect` ，表示：当页面访问 `path` 中的链接地址时，会默认跳转到 `redirect` 中的连接地址
+- vue 实例中的 `router` 属性，是用来关联路由规则对象，注册到 vue 实例上，用来监听URL地址，然后展示对应的组件
+- `<router-view>` 元素是 `vue-router` 插件提供的，专门是用来当作占位符的，将来，路由规则匹配到的组件，就会展示到这个 `<router-view>` 元素中
+- 在 `<a>` 元素中写入 `href='#/login'` ，表示改变浏览器中地址栏中 url 地址，而进行前端路由就必须在链接地址最前面加上 `#` (hash).
+- 我们可以使用 `<router-link>` 元素来代替 `<a>` 元素，而我们可以可以不用写 `#`
+  - 例子 `<router-link to="/login">登录</router-link>`，其中`to` 就表示链接到 `/login` 这个组件，其实就是代替了 `<a>` 元素 `href`
+
+### 给链接到路由的元素加样式
+
+```html
+<div id="vue">
+    <router-link to="/login">登录</router-link>
+    <router-link to="/register">注册</router-link>
+    <router-view>
+    </router-view>
+</div>
+<script>
+    let login = {
+        template: '<h1>登录组件</h1>'
+    }
+    let register = {
+        template: '<h1>注册组件</h1>'
+    }
+    let myRouter = new VueRouter({
+        routes:[
+            {
+                path: '/',
+                redirect: '/login'
+            },
+            {
+                path: '/login',
+                component: login
+            },
+            {
+                path: '/register',
+                component: register
+            }
+        ],
+        // linkActiveClass: 'active'
+    });
+
+    let vue = new Vue({
+        el : '#vue',
+        router: myRouter,
+    })
+</script>
+```
+
+css 代码
+
+```css
+.router-link-active,active {
+    font-weight: bolder;
+    color: deepskyblue;
+
+}
+```
+
+注意：
+
+- 我们可以使用 `.router-link-active` 来设置 `登录` 或 `注册` 的样式，这是`<router-link>` 元素中提供的默认类样式名称，通过这个类样式名称我们可以设置样式，如以上代码：
+- 在我注释的地方可以使用：`linkActiveClass: 'active'` 的含义是把这个默认的 `.router-link-active` 设置成 `active`，注意要在路由规则构造器中设置，`linkActiveClass` 是其中的一个属性
+
+### 给路由加点过渡
+
+```html
+<div id="vue">
+    <router-link to="/login">登录</router-link>
+    <router-link to="/register">注册</router-link>
+    <transition mode='out-in'>
+        <router-view>
+        </router-view>
+    </transition>
+
+</div>
+<script>
+    let login = {
+        template: '<h1>登录组件</h1>'
+    }
+    let register = {
+        template: '<h1>注册组件</h1>'
+    }
+    let myRouter = new VueRouter({
+        routes:[
+            {
+                path: '/',
+                redirect: '/login'
+            },
+            {
+                path: '/login',
+                component: login
+            },
+            {
+                path: '/register',
+                component: register
+            }
+        ],
+        linkActiveClass: 'active'
+    });
+
+    let vue = new Vue({
+        el : '#vue',
+        router: myRouter,
+    })
+</script>
+```
+
+css代码：
+
+```css
+.active {
+    font-weight: bolder;
+    color: deepskyblue;
+}
+.v-enter,
+.v-leave-to {
+    opacity: 0;
+    transform: translateX(100px);
+}
+.v-enter-active,
+.v-leave-active {
+    transition:  all 0.5s ease-in
+}
+```
+
+### 路由传递参数
+
+#### 路由规则中定义参数
+
+```html
+<div id="vue">
+    <router-link to="/login?id=10&name=sir&sex=男">登录</router-link>
+    <router-link to="/register">注册</router-link>
+    <router-view>
+    </router-view>
+</div>
+<script>
+    let login = {
+        template: `
+        <div>
+            <h1>登录组件</h1>
+            <p>学号：{{ $route.query.id }}</p>
+            <p>姓名：{{ $route.query.name }}</p>
+            <p>性别：{{ this.$route.query.sex }}</p>
+        </div>
+        `,
+    }
+    let register = {
+        template: '<h1>注册组件</h1>'
+    }
+    let myRouter = new VueRouter({
+        routes:[
+            {
+                path: '/',
+                redirect: '/login'
+            },
+            {
+                path: '/login',
+                component: login
+            },
+            {
+                path: '/register',
+                component: register
+            }
+        ],
+    });
+
+    let vue = new Vue({
+        el : '#vue',
+        router: myRouter,
+    })
+</script>
+```
+
+`注意：`
+
+- 使用 `$route` 对象来获取 `<router-link to="/login?id=10&name=sir&sex=男">登录</router-link>` 中连接过来的参数，并且不需要再路由构造函数中设置额外的参数，直接使用 `$route.query` 可以查看到传过来的值，并且以键值对的形式，已经进行了处理
+- 在使用 `$route` 可以省略 this
+
+#### 使用路由规则进行传参
+
+```html
+<div id="vue">
+    <router-link to="/login/12/sri/男">登录</router-link>
+    <router-link to="/register">注册</router-link>
+    <router-view>
+    </router-view>
+</div>
+<script>
+    let login = {
+        template: `
+        <div>
+            <h1>登录组件</h1>
+            <p>学号：{{ $route.params.id }}</p>
+            <p>姓名：{{ $route.params.name }}</p>
+            <p>性别：{{ $route.params.sex }}</p>
+        </div>
+        `,
+    }
+    let register = {
+        template: '<h1>注册组件</h1>'
+    }
+    let myRouter = new VueRouter({
+        routes:[
+            {
+                path: '/',
+                redirect: '/login'
+            },
+            {
+                path: '/login/:id/:name/:sex',
+                component: login
+            },
+            {
+                path: '/register',
+                component: register
+            }
+        ],
+    });
+
+    let vue = new Vue({
+        el : '#vue',
+        router: myRouter,
+    })
+</script>
+```
+
+`注意：`
+
+- 使用 `$route.params` 对象来获取 `<router-link to="/login/12/sri/男">登录</router-link>` 中连接过来的参数，并且需要在路由构造函数中设置额外的参数与传递过来的值一一对应
+
+### 子路由
+
+```html
+<div id="vue">
+    <router-link to="/index">进入了首页</router-link>
+    <router-view>
+
+    </router-view>
+</div>
+<script>
+    let login = {
+        template: `<h1>登录组件</h1>`,
+    }
+    let register = {
+        template: '<h1>注册组件</h1>'
+    }
+    let index = {
+        template: `
+        <div>
+            <h1>这是一个首页组件</h1>
+            <router-link to="/index/login">登录</router-link>
+            <router-link to="/index/register">注册</router-link>
+            <router-view></router-view>
+        </div>
+        `
+    }
+    let myRouter = new VueRouter({
+        routes:[
+            {
+                path: '/',
+                redirect: '/index',
+            },
+            {
+                path: '/index',
+                component: index,
+                children: [
+                    {
+                        path: 'login',
+                        component: login
+                    },
+                    {
+                        path: 'register',
+                        component: register
+                    }
+                ]
+            }
+        ],
+    });
+
+    let vue = new Vue({
+        el : '#vue',
+        router: myRouter,
+    })
+</script>
+```
+
+`注意：`
+
+- 使用子路由必须在所在的路由规则中加入一个属性 `children` 属性，该属性是一个数组，有点像 `routes` 属性，可以一直嵌套下去，而后在对应被嵌套的路由规则的模板中加入对应的嵌套路由的占位符及其 `<router-link>` 等
+
+### 路由-命名视图
+
+```html
+<div id="vue">
+    <router-view name='header'></router-view>
+    <router-view name='left'></router-view>
+    <router-view name='main'></router-view>
+</div>
+<script>
+    let header = {
+        template: `<h1 class='header'>头部</h1>`,
+    }
+    let main = {
+        template: '<h1 class="main">主体</h1>'
+    }
+    let left = {
+        template: `<h1 class='left'>左导航栏</h1>`
+    }
+    let myRouter = new VueRouter({
+        routes:[
+            {
+                path: '/',
+                components: {
+                    header:header,
+                    left:left,
+                    main:main,
+                }
+            }
+        ],
+    });
+
+    let vue = new Vue({
+        el : '#vue',
+        router: myRouter,
+    })
+</script>
+```
+
+css 代码：
+
+```css
+* {
+    margin: 0;
+    padding: 0;
+    text-align: center;
+}
+html,
+body {
+    width: 100%;
+}
+.header {
+    height: 20vh;
+    background-color:deeppink;
+}
+.left {
+    width: 30%;
+    float: left;
+    background-color:deepskyblue;
+    height: 80vh;
+}
+.main {
+    width: 70%;
+    float: left;
+    background-color:gray;
+    height: 80vh;
+}
+```
+
+可以使用这种方式，在一个 url 中使用多个并列的组件，将 `component` 写成 `componets` ，表示接受一个包含多个模板对象的对象，使用键值对的方式表示，而后在 `<router-view name='header'></router-view>` 元素中的 `name` 特性写入你想渲染的模板别名，而模板别名就是 `componets` 所对应的键值，而后渲染就可以渲染出对应的模板了。
+
+参考资料：
+1. https://cn.vuejs.org/ （vue 官网文档）
+2. 《Vue.js 实战》
+
+时间：2019年4月28日16:27:41

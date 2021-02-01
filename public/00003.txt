@@ -1,0 +1,171 @@
+﻿## Node 由什么组成？
+Node 主要由以下四部分组成：
+1. ECMAscript
+   - 和浏览器不一样，在 Node 中没有 BOM、DOM
+2. 核心模块
+   - fs 文件操作的 
+   - http 服务的 http
+   - url 路径操作模块
+   - path 路径处理模块
+   - os 操作系统信息
+3. 第三方模块
+   - art-template
+   - 必须通过 npm 来下载才可以使用
+4. 自己写的模块
+   - 自己创建的文件
+
+下面我就简单介绍以下 Node 的核心模块：
+
+## 核心模块
+### fs 文件操作模块
+
+1. 首先，引用这个 fs 模块
+
+```javascript
+let fs = require('fs')
+```
+
+2. 就可以直接调用 fs 模块中的方法了
+
+#### fs.writeFile
+写文件
+```javascript
+fs.writeFile('./demo.text','hello Node.js');
+```
+
+- 第一个参数：**`文件路径`**
+- 第二个参数：**`文件内容`**
+- 第三个参数：**`回调函数`**
+
+而回调函数都用 **error** 进行判断 ：
+
+例如:
+
+```javascript
+fs.writeFile('./data/您好.md','大家好，我给大家介绍一下，我是Node.js', 
+    function (error, data) {
+        if (error) {
+            console.log('读取文件失败');
+        } else {
+            console.log(data.toString);
+        }
+    })
+```
+
+error
+
+- 成功：
+	- 	文件写入成功
+	- error 是 null
+
+- 失败：
+	- 文件写入失败
+	- error 就是错误对象
+#### fs.readFile
+读取文件
+```javascript
+fs.writeFile('./demo.txt', function (error, data) {
+    // code
+});
+```
+
+- 第一个参数：**`文件路径`**
+- 第二个参数：**`回调函数`**
+
+error
+
+- 成功：
+	- data    数据
+	- error   null
+- 失败：
+	- data    undefined   没有数据
+	- error   错误对象
+
+**注意**:
+读取出来的文件是**二进制**显示出来的，需要借助.tostring 转为我们所能识别的字符串
+
+#### fs.readdir
+读取文件所在目录
+```javascript
+fs.readdir('./demo.txt', 
+function (error, files) {
+    if (error) {
+        return res.end('目录读取失败');
+    };
+    res.end(files);
+});
+```
+
+**注意：**
+`files` 返回的对象是一个数组
+
+
+
+## path 路径操作模块
+1. 首先，引用这个 path 模块
+
+```javascript
+let path = require('path')
+```
+
+2. 就可以直接调用 path 模块中的方法了
+
+- path.basename
+  - 获取一个路径的文件名（默认包含扩展名）
+- path.dirname
+  - 获取一个路径中的目录部分
+- path.exitname
+  - 获取一个路径中的扩展名的部分
+- path.parse
+  - 把一个路径转换为对象
+    - root	根路径
+    - base        包含后缀名的文件名
+    - dir            目录
+    - name       不包含后缀名的文件名
+    - ext            后缀名
+- path.join
+  - 当你需要进行路径拼接的时候，推荐使用该方法
+- path.isAbsolute 
+  - 判断一个路径是否是绝对路径
+
+### Node 中的其他成员
+
+在每个模块中，除了 `require` 、`express`  等模块相关 API 之外，还有两个特殊的成员
+
+- `__dirname` 
+  - **动态获取**可以用来获取当前文件模块所属目录的绝对路径
+- `__filename`
+  - **动态获取**可以用来获取当前文件的绝对路径
+- `__dirname` 和 `__filename` 是不受执行 node 命令所属路径影响的
+
+
+
+目的：
+
+动态获取当前模块所属的路径
+
+
+## http 服务器模块
+1. 首先，引用这个 http 模块
+
+```javascript
+let http = require('http')
+```
+
+2. 就可以直接调用 http 模块中的方法了
+
+```javascript
+let http = require('http');
+
+let server = http.server(); //创建一个实例，开启服务器
+
+server.on('request',function (request, response) {
+    server.end('hello');
+})
+
+server.listen(3000, function () {
+    console.log('runing...');
+})
+```
+
+时间：2019年3月3日20:10:46

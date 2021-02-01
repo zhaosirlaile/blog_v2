@@ -1,0 +1,115 @@
+## 需求分析
+
+我们写的 axios 具有以下特点：
+
+- 在浏览器使用 XMLHttpRequest 对象通讯
+- 支持 Promise API
+- 支持请求和响应的拦截器
+- 支持请求数据和响应数据的转换
+- 支持请求的取消
+- JSON 数据的自动转换
+- 客户端防止 XSPF
+
+## 准备
+
+**1、需要一个远程仓库**
+
+需要一个 GitHub 的账号(其他的远程仓库也是可以的)，建立一个仓库。
+
+> 注：GitHub 仓库的地址：<https://github.com/>
+
+**2、配置 TS 的环境**
+
+环境其实不需要配置，可以通过 GitHub 中进行下载 typescript-library-starter，这个项目已经给我们配置好了 TS 的环境
+
+```shell
+git clone https://github.com/alexjoverm/typescript-library-starter.git ts-axios
+
+cd ts-axios
+
+npm install	// 下载依赖文件(node-modules)
+```
+
+还要安装webpack，express 及其插件 ：
+
+```shell
+npm i webpack webpack-dev-middleware webpack-hot-middleware -D
+npm i ts-loader tslint-loader express body-parser -D
+```
+
+
+
+> 注：typescript-library-starter 的网址为：<https://github.com/alexjoverm/typescript-library-starter> ,下面有文档，可以进行查阅
+
+
+
+**3、将 ts-axios 关联到远程仓库**
+
+关联远程仓库，记住使用 **ssh** 的方式，别使用 **https** ：
+
+```shell
+git remote add origin git@github.com:zhaosirlaile/ts-axios.git
+```
+
+查看关联是否成功，以下图片为例：
+
+```shell
+git remote -v
+```
+
+![1586866087650](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1586866087650.png)
+
+将本地代码和远程仓库进行同步：
+
+```shell
+git pull origin master	 # 拉取远程的代码
+
+git branch				 # 参看本地分支，有一个 master 分支，说明成功了
+
+git add .				 # 提交到缓存
+
+```
+
+我们提交代码不用使用 `git commit` 命令，这个项目有一个命令可以进行提交
+
+```shell
+npm run commit
+```
+
+运行后会得到以下样子，会有一系列选项，按照提示填写就可以了，它会按照提示提交到本地仓库：
+
+![1586867388128](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1586867388128.png)
+
+提交到远程仓库
+
+```shell
+npm push origin master
+```
+
+这样远程仓库就有代码了
+
+## 写点代码
+
+在 `src` 目录下新建 `index.ts` 文件，代码为：
+
+```ts
+type Method = 'get' | 'GET' | 'delete' | 'Delete' | 'head' | 'HEAD' | 'options' | 'OPTIONS' | 'post' | 'POST' | 'put' | 'PUT' | 'patch' | 'PATCH';
+
+
+interface AxiosRequestConfig {
+    url: string,
+    method?:Method,
+    data?:any,
+    params?:any,
+}
+    
+axios (config :AxiosRequestConfig) {
+    const {data = null,url,method='get'} = config;
+    const request = new XMLHttpRequest();
+    request.open(method.toUpperCase(),url,true);
+    request.send(data);
+}
+```
+
+大概就这样吧！
+

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<link rel="shortcut icon" href="https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/img/favicon.ico" type="image/x-icon">
+    <title>后台管理页面</title>
+    <link rel="stylesheet" href="/node_modules/bootstrap/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/manage/css/manage.css">
+    <link rel="stylesheet" href="/manage/css/blogmanage.css">
+</head>
+<body>
+    <div class="w">
+        <div class="header">
+                <nav class="navbar navbar-default" style="">
+                    <div class="container-fluid">
+                        <div class="navbar-header">
+                        <a class="navbar-brand" href="">
+                            <img alt="Brand" class="logo" src="https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/img/logo.png">
+                        </a>
+                        </div>
+                    </div>
+                </nav>
+        </div>
+        <div class="main">
+            <ul class="nav nav-pills nav-stacked">
+                <li><a href="/manage">首页</a></li>
+                <li class="active"><a href="/blogmanage">博客管理</a></li>
+                <li><a href="/edit">写博客</a></li>
+            </ul>
+            <div class="content">
+                {{data}}
+            </div>
+        </div>
+    </div>
+    
+<script src="/node_modules/jquery/dist/jquery.min.js"></script>
+<script src="/node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+<script>
+    $(function(){
+        $('.contentitem').click(function(e){
+            if ($(e.target)[0].tagName === 'A'){
+                if ($(e.target).attr('title') === '查看') {
+                    location.href = '/#' + $(e.currentTarget).attr('name');
+                } else if ($(e.target).attr('title') === '编辑') {
+                    location.href = `/edit/alter?id=${$(e.currentTarget).attr('name')}`;
+                } else {
+                    if(confirm('确定要删除吗？') === true){
+                        $.ajax({
+                            type: "POST",
+                            url: "/blogmanage/deleteByAhref",
+                            contentType: "application/json;charset=UTF-8",
+                            data: JSON.stringify({
+                                id: $(e.currentTarget).attr('name'),
+                                isNo: true,
+                            }),
+                            success(result){
+                                result = JSON.parse(result);
+                                if (result.code === 1) {
+                                    alert('删除成功');
+                                    location.href = '/blogmanage';
+                                } else {
+                                    alert('删除失败');
+                                }
+                            }
+                        });
+                    }
+                }
+            }
+        })
+    })
+</script>
+</body>
+</html>

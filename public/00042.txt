@@ -1,0 +1,123 @@
+虽然最近期末考试，但还是准备梳理一下自己一两个月来学习 **React Native** 的一些经历
+
+## Model
+
+该组件是提供一种覆盖在其他视图上显示的内容。
+
+类似于下图支付宝的选择框遮罩效果。
+
+![1577017127963](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1577017127963.png)
+
+还有一些b站的分享也是使用类似的这种效果
+
+文档参见一些官网的把：<https://reactnative.cn/docs/modal/>
+
+官网上说的很好了
+
+这个我们一般会和 **StatusBar** 组件进行配合使用
+
+
+
+## StatusBar
+
+这是控制应用状态栏的组件，就是手机最上方的那部分横条（显示时间，推送信息，WiFi之类）区域。
+
+大概是可以控制背景，字体颜色，是否隐藏（参考小说的阅读器），透明等等
+
+参考官方的文档：<https://reactnative.cn/docs/statusbar/>
+
+**注意**：
+
+- 可以放置多个且后加载的会覆盖先加载的。因此在配合导航器使用时，请务必考虑清楚`StatusBar`的放置顺序。
+- **Android** 放置视图的区域是默认在状态栏之下开始的，而 **IOS** 的视图是在状态栏上开始的，所以我们就需要判断他到底是哪个平台，就必须使用 **Platform** ，来给我们要渲染的视图给一个 `marginTop`
+
+## Platform
+
+在编写跨平台的应用时，我们肯定希望尽可能多地复用代码。但是总有些时候我们会碰到针对不同平台编写不同代码的需求。
+
+一般我们通过 `Platform.OS` 来判断他是哪个平台的。
+
+例如：
+
+```js
+import { Platform, StyleSheet } from "react-native";
+
+const styles = StyleSheet.create({
+  marginTop: Platform.OS === "ios" ? 27 : 0,
+});
+```
+
+这上面的代码就是上面`StatusBar`提到使用 Platform 兼容两个平台的实现
+
+官网文档：<https://reactnative.cn/docs/platform-specific-code/>
+
+个人感觉这个主要是判断平台，进而进行样式的设置，实现兼容。
+
+
+
+## Dimensions
+
+这个就是来获取设备屏幕的宽高。
+
+这个官网说的不详细。
+
+```js
+import { Dimensions } from 'react-native';
+
+const {height, width} = Dimensions.get('window');
+const {height, width} = Dimensions.get('screen');
+```
+
+- `window`: 即为可用显示屏幕的宽高，**不包括**顶部的状态信息栏
+- `screen`: 即为整个显示屏幕的宽高，**包括**顶部的状态信息栏
+
+
+
+## Flatlist
+
+该组件使用来渲染列表的（高性能）
+
+该组件继承了 **VirtualizedList** 组件，该组件就是官方封装的组件，首先说一下它为什么怎么高性能呢？主要不是一次性渲染完成，以前的 **ListView** 就是一次性渲染完成，结果当碰到很多数据是就有明显的卡顿，甚至卡退等，官方已经舍弃了该组件，取而代之的就是我们介绍的这个 **Flatlist** 组件，它主要是渲染当前设备所显示的数据并且外加上下10个左右的数据（可能更多，主要是方便理解），他会实时渲染，当数据不再我们要渲染的范围内就会把它销毁，进而提升性能。
+
+该组件的数据源必须是数组，如果其他类型可以使用 **VirtualizedList** 。
+
+写一个简单的例子：
+
+```js
+<FlatList
+    data={[{key: 'a'}, {key: 'b'}]}
+    renderItem={({item}) => <Text>{item.key}</Text>}
+/>
+```
+
+- **ItemSeparatorComponent** ：行与行之间的分隔线组件。不会出现在第一行之前和最后一行之后
+
+- **ListEmptyComponent** ：列表为空时渲染该组件。渲染 '正在加载中'，**ActivityIndicator** 组件子类的
+
+- **ListFooterComponent** ：尾部组件。渲染一些 '到底了'，'正在加载之类' 的话
+
+- .....等等，说一点重要的
+
+- **numColumns** ：实现多列布局
+
+- **horizontal** ：水平模式
+
+  - true：水平
+  - false：垂直（默认）
+
+- **getItemLayout** ：这个属性很重要，他可以大大优化你的内存开销，用于避免动态测量内容尺寸的开销，不过前提是你可以提前知道内容的高度
+
+  ```js
+  getItemLayout={(data, index) => (
+      {length: ITEM_HEIGHT, offset: ITEM_HEIGHT * index, index}
+  )}
+  ```
+
+  - `horizontal={true}` 时：**ITEM_HEIGHT** 应该变成内容的宽度
+  - `horizontal={false}` 时：**ITEM_HEIGHT** 应该变成内容的高度
+
+- **onRefresh** ：用于刷新
+
+
+
+先大概先写这么多吧！

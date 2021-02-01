@@ -1,0 +1,108 @@
+﻿
+
+这几天做用 vue 给后台发数据的使用了 `vue-resource` ，结果报错，怎么改都是错，实在是没办法，看下 vue 的官网，结果发现vue官方不支持维护 `vue-resource` ，尤大也建议我们使用`axios` ，后来就用了下，一次就成功了，真心好用。
+
+## 简介
+
+Axios 是一个基于 promise 的 HTTP 库，可以用在浏览器和 node.js 中
+
+## 特征
+
+- 从浏览器中创建 XMLHttpRequests
+- 从 node.js 创建 http 请求
+- 支持 Promise API
+- 拦截请求和响应
+- 转换请求数据和响应数据
+- 取消请求
+- 自动转换 JSON 数据
+- 客户端支持防御 XSRF
+
+## 安装
+
+```shell
+npm i axios
+```
+
+npm 上的axios : https://www.npmjs.com/package/axios
+
+## 使用
+
+其实这篇文档写的详细: https://www.kancloud.cn/yunye/axios/234845 重要的是支持中文
+
+### Get
+
+方法一
+
+```js
+axios.get('/user?ID=00001&naem=XX')
+  .then(function (response) {
+    console.log(response);
+  })
+  .catch(function (error) {
+    console.log(error);
+  });
+```
+
+方法二
+
+```js
+axios.get('/user' {
+    params: {
+      ID: 12345
+      name: 'XX'
+    }
+  })
+  .then(function (response) {
+    console.log(response);
+  })
+  .catch(function (error) {
+    console.log(error);
+  });
+```
+
+上面的两种方法实现的效果一样的，在发起请求时`params` 会将其中设置的键值对转换为第一种形式，第二种方法非常方便，推荐使用第二种
+
+### Post
+
+```js
+axios.post('/user', {
+    user: '00001',
+    name: 'XX'
+})
+.then(function (response) {
+	console.log(response);
+})
+.catch(function (error) {
+	console.log(error);
+});
+```
+
+Post 就只有一种方法，`{ user: '00001',name: 'XX' }`其实就是原生 ajax的send方法，将要发送的数据添加到请求体中
+
+### 同时发起多个请求
+
+```js
+function get1() {
+  return axios.get('/user/00001');
+}
+
+function get2() {
+  return axios.get('/user/00002');
+}
+
+axios.all([get1(), get2()])
+    .then(axios.spread(function (acct, perms) {
+    //注意：当两个请求返回数据后才执行
+}));
+```
+
+
+
+ok了，我现在最多用到我写的三个就方法，axios 还有很多好用的方法，这里就不多赘述了，网上有很多 axios 的博客，写的都很好。
+
+
+
+时间：2019年5月27日21:18:35
+
+
+

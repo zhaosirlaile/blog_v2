@@ -1,0 +1,73 @@
+﻿整篇博客使用 CDN 的方式引用以下文件
+
+- marked.js 将 markdown 转换成 html
+- highlightj.js 代码高亮
+- highlightjs-line-numbers.js 代码行号
+## 什么是 marked
+- 为速度而建
+- 用于解析markdown的低级编译器，无需长时间缓存或阻塞
+- 重量轻，同时实现支持的口味和规格的所有降价功能
+- 在浏览器，服务器或命令行界面（CLI）中工作
+## 安装 marked
+```shell
+npm i marked -s
+```
+## 使用方法
+```html
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>Marked in the browser</title>
+</head>
+<body>
+  <div id="content"></div>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script> 
+  <script>
+    document.getElementById('content').innerHTML =
+      marked('# marked的简单用法 **marked**.');
+  </script> 
+</body>
+</html>
+```
+其实在 node 中也是可以使用 marked这个包的，但今天我非常恼火，就是下面我要介绍的一个包 **highlight**  ，它的官方文档说可以支持 node，结果今天我花了一整天的时间去看它，发现什么效果，(这里说的是 node 的使用)，在浏览器上直接使用时没有问题的。
+
+## 什么是 highlight
+- 185种语言和89种风格
+- 自动语言检测
+- 多语言代码突出显示
+- 可用于node.js（`有待考究`）
+- 适用于任何标记
+- 与任何js框架兼容
+
+它的官网：https://highlightjs.org/
+
+## 安装 highlight
+```shell
+npm i highlight.js -s
+```
+## 使用方法 
+```html
+<script charset="UTF-8" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/go.min.js"></script> //添加
+<script>hljs.initHighlightingOnLoad();</script> //调用
+```
+## 什么是 highlightjs-line-numbers
+- Highlight.js行号插件
+
+## 安装 highlightjs-line-numbers
+```shell
+npm install highlightjs-line-numbers.js
+```
+## 使用方法
+```html
+<script src="path/to/highlight.min.js"></script>
+<script src="path/to/highlightjs-line-numbers.min.js"></script>
+hljs.initHighlightingOnLoad();
+hljs.initLineNumbersOnLoad();
+```
+## 使用 markdown 编辑器进行转 HTML
+我使用的是 Typora ：https://www.typora.io/
+这个编译器很方便，只需要将你写好 md 文件写好，并且导出的文件，就可以导出你在编译器中看见的样式，这是非常方便的
+
+时间：2019年5月12日18:56:11
+恼火、倒霉的一天！

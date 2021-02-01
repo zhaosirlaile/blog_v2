@@ -1,0 +1,163 @@
+﻿## 什么是 AJAX
+
+允许浏览器与服务器通信而无须刷新当前页面的技术都被叫做 AJAX （Asynchronous JavaScript and XML）
+
+## 如何使用 AJAX
+
+AJAX 是一套 API 核心提供的类型：`XMLHttpRequest`
+
+1. 创建 `XMLHttpRequest` 对象
+
+```javascript
+// xhr 就类似于浏览器的作用
+let xhr = new XMLHttpRequest();
+//建立一个 xhr 的实例
+```
+
+2. 向服务去发送 HTTP 请求
+
+```javascript
+xhr.open('GET','http://day-11.io/time.php');
+xhr.send()	
+```
+
+- `open(method,ulr,async)` ： 发送 HTTP 响应头
+  - method
+    - get
+    - post
+  - url 
+    - 服务器地址
+  - async
+    - true（异步）默认
+    - false（同步）
+- send(value) ：这里其实是响应的主体
+  - get 一般 `xhr.send(null)`
+  - post 一般 `xhr.send(JSON)` ，一般传递一个JSON对象
+
+3. 接受服务器响应回来的数据
+
+```js
+xhr.onreadystatechange = function() {
+	// your code
+};
+```
+
+- `onreadystatechange` ：onreadystatechange 属性指向一个监听函数，当 `readyState` 发生改变时就会触发 `onreadystatechange` ，也就意味着个事件会被触发多次，所以我们有必要了解`readyState`每一个状态值代表的含义
+
+| readyState | 状态描述         | 说明                                                  |
+| ---------- | ---------------- | ----------------------------------------------------- |
+| 0          | UNSENT           | 代理（XHR）被创建，但没有调用`open()` 方法            |
+| 1          | OPENED           | `open()` 方法已经被调用，建立了连接                   |
+| 2          | HEADERS_RECEIVED | `send()` 方法已经被调用，并且已经可以获取             |
+| 3          | LOADING          | 响应体下载中，`responseText` 属性可能已经包含部分数据 |
+| 4          | DONE             | 响应体下载文成，可以直接使用 `responseText`           |
+
+完整代码：
+
+```javascript
+let xhr = new XHLHttpRequest()
+xhr.open('get','127.0.0.1:3000/')
+xhr.setRequestHeader('Accept','text/plain');
+xhr.send(null)
+xhr.onreadystatechange = function() {
+    if (this.readyState === 4) {
+        console.log(this.reponseText);
+    }
+}
+```
+
+## AJAX实例
+
+HTML代码：`注：这里用了 BootStrap3 中的登录页代码` 
+
+```html
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>Signin Template for Bootstrap</title>
+    <link href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="container">
+      <form class="form-signin">
+        <h2 class="form-signin-heading">Please sign in</h2>
+        <label for="inputEmail" class="sr-only">Email address</label>
+        <input type="email" id="inputEmail" class="form-control" placeholder="Email address" required autofocus>
+        <label for="inputPassword" class="sr-only">Password</label>
+        <input type="password" id="inputPassword" class="form-control" placeholder="Password" required>
+        <div class="checkbox">
+          <label>
+            <input type="checkbox" value="remember-me"> Remember me
+          </label>
+        </div>
+        <button id="btn" class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+      </form>
+    </div> 
+    <script>
+        let btn = document.getElementById('btn');
+        let email = document.getElementById('inputEmail');
+        let password = document.getElementById('inputPassword');
+        btn.onclick = function () {
+            let xhr = new XMLHttpRequest();
+            xhr.open('POST','/post');
+            xhr.send('email='+email.value+'&password='+password.value);
+            xhr.onreadystatechange = function() {
+                if(xhr.readyState === 4) {
+                    let login = JSON.parse(xhr.responseText);
+                    console.log(login.login);
+                    if (login.login === 1) {
+                        alert('登录成功！');
+                    }
+                } 
+            };
+        }
+
+    </script>
+  </body>
+</html>
+
+```
+
+后台我是用 node 写的：
+
+```js
+let http = require('http');
+let fs = require('fs');
+let querystring = require('querystring');
+let server = http.createServer();
+
+server.on('request',function(req,res) {
+    let url = req.url;
+    console.log(req.body);
+    if(url === '/') {
+        fs.readFile('./index.html',function(err,data){
+            if (err) throw err;
+            res.end(data);
+        })
+    } else if (url === '/post') {
+        let data = '';
+        req.on('data',function(chunk){
+            data += chunk;
+        })
+        req.on('end',function(){
+            let body = querystring.parse(data)
+            console.log(querystring.parse(data));
+            if (body.email = 'zhaosir@qq.com' && body.password === '123456') {
+                console.log('密码正确');
+                res.writeHead(200, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({login:1}));
+            }
+        })
+    }
+})
+server.listen(3000,function(){
+    console.log('Running...');
+})
+```
+
+时间：2019年4月14日15:53:50

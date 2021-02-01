@@ -1,0 +1,134 @@
+`注：我是用的是webpack 4.x 版本`
+
+## 什么是webpack?
+
+它就是一个 **模块打包** 工具 （Module Bilder）
+
+## 模块加载方式
+
+它就是我们使用导入或导出模块的规范，主要有四种：
+
+- CommonJS （node）
+  就是使用 require 导入，module.exports 导出
+- ES6 模块 （**常用**）
+  使用 import 导入，export 导出
+- AMD
+- CMD
+
+## 安装
+
+> 最好是安装在项目中，别安装在全局中。如果你运行两个项目，一个使用 webpack 3.x ，一个使用 webpack 4.x ，它们两个都互相需要对方，那如何确保都可以准确无误的运行呢？不同版本的 webpack 都可以准确无误的执行，这才是我们想要的。
+
+```shell
+npm i webpack webpack-cli -s
+```
+
+> webpack-cli 这个包的作用就是，在使用 **webpack** 和 **npx webpack** 中可以正确使用 webpack
+
+## 运行
+
+### 1、 通过webpack命令行(npx)
+
+> **npx** 可以帮助我们在项目中运行 webpack
+
+```shell
+npx webpack index.js
+```
+
+`index.js` 是你需要打包的文件，打包完后，会在项目中出现一个 `dist的文件夹` ，里面有一个 `main.js` 文件，该文件就是我们打包好的文件了
+
+### 2、 通过默认配置文件 webpack.config.js
+
+在 webpack 中默认将 `webpack.config.js` 认为是配置文件。
+
+在项目中创建 webpack.config.js，输入以下代码：
+
+```shell
+const path = require('path');
+
+module.exports = {
+    mode: 'production',
+    entry: './index.js',
+    output: {
+        filename: 'bundle.js',
+        path: path.join(__dirname, 'dist'),
+    }
+}
+```
+
+- **mode**：表示打包模式（**是否被压缩**）
+
+  - **production** ：默认，压缩代码
+  - **development** ：不压缩代码
+
+- **entry** ：表示入口文件路径
+
+  ```js
+  entry: './index.js' 
+  
+  // 等于，简写
+      
+  entry: {
+  	main: './index.js'
+  }
+  ```
+
+- **output** ：表示输出文件
+
+  - **filename** ：表示文件名称
+  - **path** ：表示文件路径，使用 node 中的path模块进行路径拼接。可以不用写，默认 `./dist`
+
+在命令行中运行：
+
+```shell
+npx webpack
+```
+
+它会默认根据 `webpack.config.js` 中的配置进行设置
+
+
+
+我们可以使用 `package.json` 中的 `script` 进行打包，添加 `"build":`
+
+```js
+{
+  .
+  .
+  .
+  "scripts": {
+    "build": "webpack"
+  },
+  .
+  .
+  .
+}
+```
+
+
+
+在命令行中运行：
+
+```shell
+npm run build
+```
+
+和 `npx webpack` 效果一样，这条命令也就是 `webpack`，只不过它会先在项目中寻找，而后在从全局中寻找
+
+**打包多个文件**
+
+```js
+module.exports = {
+    mode: 'development',
+    entry: {
+        main: './src/index.js',
+        sub: './src/index.js',
+    },
+    output: {
+        filename: '[name].js',
+        path: path.join(__dirname, 'dist'),
+    }
+}
+
+```
+
+像这样打包就可以实现输出多个文件，输出的文件名为：`main.js` 、 `sub.js`.

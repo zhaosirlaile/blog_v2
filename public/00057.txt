@@ -1,0 +1,522 @@
+这一章主要完善接口
+目录结构没有进行修改
+## withCredentials
+
+这个功能是可以携带跨越请求的，默认情况下是自动携带同源 `cookie` 的 ，但是跨域的时候是不可以进行携带的，将 `withCredentials` 设置成 `true` 就可以进行携带了。
+
+`types/index.ts`
+
+```typescript
+export interface AxiosRequestConfig {
+	// ...
+
+    withCredentials?:boolean,
+	
+    //...
+}
+```
+
+`core/xhr.ts`
+
+```typescript
+// ...
+if(timeout) request.timeout = timeout;
+
+if(withCredentials) {
+    request.withCredentials = withCredentials;
+}
+// ...
+```
+
+接改变这点就够了
+
+## XSRF
+
+其实就是在 `header` 中添加 `token` （后端生成返回的标识）
+
+`types/index.ts`
+
+```typescript
+export interface AxiosRequestConfig {
+	// ...
+    xsrfCookieName?:string,
+    xsrfHeaderName?:string,
+	// ...
+}
+```
+
+`defaults.ts`
+
+```typescript
+const defaults: AxiosRequestConfig = {
+	// ...
+    xsrfCookieName: 'XSRF-TOKEN',
+    xsrfHeaderName: 'X-XSRF-TOKEN',
+	// ...
+}
+```
+
+`helpers/url.ts`
+
+```typescript
+interface URLOrigin{
+    protocol:string,
+    host: string,
+}
+
+
+export function isURLsameOrigin(requestURL: string):boolean {
+    const parseOrigin = resolverURL(requestURL);
+    return (parseOrigin.protocol === currentOrigin.protocol && parseOrigin.host === currentOrigin.host)
+
+}
+
+const urlParsingNode = document.createElement('a');
+const currentOrigin = resolverURL(window.location.href);
+
+
+function resolverURL(url: string): URLOrigin {
+    urlParsingNode.setAttribute('href',url);
+
+    const {protocol,host} = urlParsingNode;
+
+    return {
+        protocol,
+        host,
+    }
+}
+```
+
+通过 `a` 标签拿到 `protocol` （协议）和 `host` （主机地址）
+
+新建 `helpers/cookie.ts`
+
+```typescript
+const cookie = {
+    read(name: string) : string | null {
+        const match = document.cookie.match(new RegExp('(^|;\\s*)(' +  name + ')=([^;]*)'));
+        return match ? decodeURIComponent(match[3]) : null;
+    }
+}
+
+export default cookie;
+```
+
+读取 `cookie` 
+
+`core/xhr.ts`
+
+```typescript
+// ...
+request.ontimeout = function handleTimeout() {
+    reject(createError(`Timeout of ${timeout} ms exceeded`,config,'ECONNABORTED',request));
+}
+// 添加的部分
+if((withCredentials || isURLsameOrigin(url)) && xsrfCookieName){
+    const xsrfValue = cookie.read(xsrfCookieName);
+    if(xsrfValue && xsrfHeaderName) {
+        headers[xsrfHeaderName] = xsrfValue;
+    }
+};
+// 添加的部分
+
+// ...
+```
+
+自动设置  `cokie` ，个人感觉没什么用
+
+## 下载 和 上传监控
+
+`types/index.ts`
+
+```typescript
+// ...
+export interface AxiosRequestConfig {
+	// ...
+
+    onDownloadProgress?:(e: ProgressEvent) => void,
+    onUploadProgress?: (e: ProgressEvent) => void,
+	// ...
+}
+// ...
+```
+
+`helpers/util.ts` 
+
+```typescript
+export function isFormData(val: any): val is FormData {
+    return typeof val !== 'undefined' && val instanceof FormData
+}
+```
+
+判断对象是否是 `FormData`
+
+`core/xhr.ts`
+
+```typescript
+// ... 锚点
+request.ontimeout = function handleTimeout() {
+    reject(createError(`Timeout of ${timeout} ms exceeded`,config,'ECONNABORTED',request));
+}
+
+// 添加的部分
+if(onDownloadProgress) {
+    request.onprogress = onDownloadProgress;
+}        
+
+if(onUploadProgress) {
+    request.upload.onprogress = onUploadProgress;
+}
+
+if(isFormData(data)) {
+    delete headers['Content-Type']
+} 
+// 添加的部分
+
+// ...
+
+```
+
+将 上传 和 下载的函数挂载到 request 上；如果 `data` 是 `Formdata` 类型的数据就将 `Content-Type` 删除，浏览器会默认添加的
+
+## 整理核心库 xhr
+
+```typescript
+import {AxiosRequestConfig,AxiosPromise,AxiosResponse} from '../types';
+import {parseHeaders} from '../helpers/header';
+import {createError} from '../helpers/error';
+import {isURLsameOrigin} from '../helpers/url';
+import {isFormData} from '../helpers/util'
+import cookie from '../helpers/cookie';
+
+export default function xhr(config:AxiosRequestConfig) : AxiosPromise {
+    return new Promise((reslove,reject)=> {
+        const {
+            data = null,
+            url,
+            method='get',
+            timeout,
+            headers,
+            responseType,
+            cancleToken,
+            withCredentials,
+            xsrfCookieName,
+            xsrfHeaderName,
+            onDownloadProgress,
+            onUploadProgress
+        } = config;
+        const request = new XMLHttpRequest();
+        
+        request.open(method.toUpperCase(),url!,true);
+
+        configureRequest();
+
+        addEvents();
+
+        processHeaders();
+
+        proccessCancel();
+
+        request.send(data);
+
+
+        function configureRequest(): void{
+            if(responseType) request.responseType = responseType;
+
+            // 超时操作
+            if(timeout) request.timeout = timeout;
+        
+            if(withCredentials) request.withCredentials = withCredentials;
+        }
+
+        function addEvents():void{
+            
+            request.onreadystatechange = function handleLoad() {
+                if(request.readyState !== 4) {
+                    return;
+                }
+
+                if(request.status === 0) {
+                    // 网络错误和超时错误时 status为 0
+                    return;
+                }
+
+                const responseHeaders = parseHeaders(request.getAllResponseHeaders());
+                const responseDate = responseType !== 'text' ? request.response : request.responseText;
+                const response:AxiosResponse = {
+                    data:responseDate,
+                    status:request.status,
+                    statusText: request.statusText,
+                    headers: responseHeaders,
+                    config,
+                    request,
+                }
+                handleResponse(response);
+            }
+ 
+            // 请求错误
+            request.onerror = function handleError() {
+                reject(createError('Network Error',config,null,request));
+            } 
+            // 超时错误
+            request.ontimeout = function handleTimeout() {
+                reject(createError(`Timeout of ${timeout} ms exceeded`,config,'ECONNABORTED',request));
+            }
+
+            if(onDownloadProgress) {
+                request.onprogress = onDownloadProgress;
+            }        
+
+            if(onUploadProgress) {
+                request.upload.onprogress = onUploadProgress;
+            }
+        }
+
+        function processHeaders():void {
+            if(isFormData(data)) {
+                delete headers['Content-Type']
+            } 
+    
+            if((withCredentials || isURLsameOrigin(url!)) && xsrfCookieName){
+                console.log('执行了',xsrfCookieName);
+                const xsrfValue = cookie.read(xsrfCookieName);
+                console.log(xsrfValue);
+                if(xsrfValue && xsrfHeaderName) {
+                    headers[xsrfHeaderName] = xsrfValue;
+                }
+            };
+    
+            // 错误结束        
+            Object.keys(headers).forEach((name) => {
+                if(data === null && name.toLocaleLowerCase() === 'content-type') {
+                    delete headers[name];
+                } else {
+                    request.setRequestHeader(name,headers[name]);
+                }
+            })
+        }
+
+        function proccessCancel():void {
+            if(cancleToken) {
+                cancleToken.promise.then(reason => {
+                    request.abort()
+                    reject(reason)
+                })
+            }
+        }
+
+
+        function handleResponse(response: AxiosResponse) : void{
+            if(response.status >= 200 && response.status < 300) {
+                reslove(response);
+            } else {
+                reject(createError(`Request failed with status code ${response.status}`,config,null,request,response));
+            }
+        }
+    })
+
+}
+```
+
+从以上代码可以看出，我将以前的代码简单的归了类， 依次执行 `configureRequest`、`addEvents`、`processHeaders`、`proccessCancel` 这四个函数，组合在进行发送
+
+## HTTP auth
+
+HTTP协议中的 [**Authorization**](<https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Authorization>) 请求消息头含有服务器用于验证用户代理身份的凭证，通常会在服务器返回`401` `Unauthorized` 状态码以及`WWW-Authenticate` 消息头之后在后续请求中发送此消息头。
+
+axios 中可以通过 `auth` 来设置 **Authorization** ，个人感觉没太大用。
+
+`types/index.ts`
+
+```typescript
+// ...
+export interface AxiosRequestConfig {
+    // ...
+    auth?:AxiosBasicCredentials,
+    // ...
+}
+// ...
+export interface AxiosBasicCredentials {
+    username: string,
+    password: string,
+}
+```
+
+`core/xhr.ts` 
+
+```typescript
+if(auth) {
+    headers['Authorization'] = 'Basic ' + `${btoa(auth.username)}:${btoa(auth.password)}`;
+}
+```
+
+就这样就行了，不过使用的话还是要配合后台的。
+
+## 自定义合法状态码
+
+我们默认的合法状态码( **status** )是 200 - 300，我们可以通过 **validateStatus** 函数来自定义合法状态
+
+`types/index.ts`
+
+```typescript
+export interface AxiosRequestConfig {
+	// ...
+    validateStatus?:(status:number) => boolean,
+	// ...
+}
+```
+
+`core/xhr.ts`
+
+```typescript
+function processHeaders():void {
+    // ...
+    if(auth) {
+        headers['Authorization'] = 'Basic ' + `${btoa(auth.username)}:${btoa(auth.password)}`;
+    }
+
+    // ...
+}
+```
+
+使用
+
+```typescript
+axios.get('/more/304',{
+  validateStatus(status){
+    return status >= 200 && status < 400
+  }
+}).then(res => {
+  console.log(res)
+}).catch((e) =>{
+  console.log(e.message);
+})
+```
+
+## 自定义参数解析规则
+
+看名字应该理解，用户自己定义 url 产生的解析规则
+
+`types/index.ts`
+
+```typescript
+export interface AxiosRequestConfig {
+	// ...
+    paramsSerializer?:(params: any) => string,
+	// ...
+}
+```
+
+`helpers/url.ts`
+
+```typescript
+export function buildURL(url: string, params?: any, paramsSerializer?:(params:any) => string):string {
+    if(!params) return url;
+
+    let serializedParams;
+
+    if(paramsSerializer) {
+        serializedParams = paramsSerializer(params);
+    } else if(isURLSearchParams(params)){
+        serializedParams = params.toString()
+    }else {
+        const parts:string[] = []; 
+
+        Object.keys(params).forEach((key) => {
+            const val = params[key];
+            if(val === null || typeof val === 'undefined') {
+                return
+            }
+            let values = [];
+            if(Array.isArray(val)) {
+                values = val;
+                key += '[]';
+            }else {
+                values = [val];
+            }
+            values.forEach((val) => {
+                if(isDate(val)){
+                    val = val.toISOString();
+                }else if(isPlainObject(val)) {
+                    val = JSON.stringify(val);
+                }
+                parts.push(`${encode(key)}=${encode(val)}`);
+            })
+        })
+        serializedParams = parts.join('&');
+    }
+
+    if(serializedParams) {
+        const markIndex = url.indexOf('#');
+        if(markIndex !== -1) {
+            url = url.slice(0,markIndex);
+        }
+        url += (url.indexOf('?') === -1 ? '?' : '&') + serializedParams;
+
+    }
+    return url;
+}
+```
+
+这个函数分三种情况：`paramsSerializer` 有的话，就进行自定义的参数解析; `params` 是否是 `URLSearchParams` ;默认解析情况
+
+`helpers/util.ts`
+
+```typescript
+export function isURLSearchParams(val: any): val is URLSearchParams{
+    return typeof val !== 'undefined' && val instanceof URLSearchParams
+}
+```
+
+`core/dispatchRequest.ts`
+
+```typescript
+function transformURL (config: AxiosRequestConfig) :string {
+    const {url,params,paramsSerializer} = config;
+    return buildURL(url!,params,paramsSerializer);
+}
+```
+
+## baseURL
+
+就是我们访问同一个域名下的多个接口时，我们不希望每次发送请求都填写完整的 url，可以用这个参数进行配合
+
+`types/index.ts`
+
+```typescript
+export interface AxiosRequestConfig {
+    baseURL?:string,
+}
+```
+
+`helpers/url.ts`
+
+```typescript
+export function isAbsoluteURL(url:string): boolean {
+    return /(^[a-z][a-z\d\+\-\.]*:])?\/\//i.test(url)
+}
+
+export function combineURL(baseURL:string, relativeURL?:string):string {
+    return relativeURL ? baseURL.replace(/\/+$/,'') + '/' +relativeURL.replace(/^\/+/, ''): baseURL
+}
+```
+
+前一个函数用来判断是否是绝对url，后一个函数进行url地址连接
+
+`core/dispatchRequest.ts`
+
+```typescript
+function transformURL (config: AxiosRequestConfig) :string {
+    let {url,params,paramsSerializer,baseURL} = config;
+    if(baseURL && !isAbsoluteURL(url)) {
+        url = combineURL(baseURL,url);
+    }
+    return buildURL(url!,params,paramsSerializer);
+}
+```
+
+这里进行完整的url地址拼接
+
+
+
+我觉得这些函数已经够用了，其他的一些很小众的函数我就不写了。

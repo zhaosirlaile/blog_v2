@@ -1,0 +1,309 @@
+## 双向链表
+
+![1572570671513](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1572570671513.png)
+
+**特点**：
+
+1. 可以使用一个 **head** 和一个 **tail** 分别指向头部和尾部的节点
+2. 每个节点都有三部分组成：前一个节点指针(prev)/保存的元素(item)/后一个节点的指针(next)
+3. 双向链表的第一个节点的 **prev** 是null
+4. 双向链表的最后的节点的 **next** 是null
+
+![1572571005195](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1572571005195.png)
+
+```js
+function Node (data) {
+    // 辅助类
+    this.data = data;
+    this.prev = null;
+    this.next = null;
+}
+function DoublyLinkedList() {
+    // 双链表
+    this.header = null;
+    this.tail = null;
+    this.length = 0;
+}
+// 向列表尾部添加一个新的项
+DoublyLinkedList.prototype.append = function(data) {
+    var newNode = new Node(data);
+    if (this.length === 0 ){
+        this.header = newNode;
+        this.tail = newNode;
+    } else {
+        newNode.prev = this.tail;
+        this.tail.next = newNode;
+        this.tail = newNode;
+    }
+    this.length += 1;
+}
+
+DoublyLinkedList.prototype.toString = function() {
+    return this.backwardString();
+}
+// 向前遍历
+DoublyLinkedList.prototype.forwardString = function() {
+    var current = this.tail;
+    var resutlString = "[";
+
+    while (current) {
+        resutlString += current.data + " ";
+        current = current.prev
+    }
+    return resutlString + "]";
+}
+DoublyLinkedList.prototype.backwardString = function() {
+    var current = this.header;
+    var resutlString = "[";
+
+    while (current) {
+        resutlString += current.data + " ";
+        current = current.next
+    }
+    return resutlString + "]";
+}
+
+DoublyLinkedList.prototype.insert = function(position, data) {
+    // 越界判断
+    if (position < 0 || position > this.length) {
+        console.error('越界');
+        return;
+    }
+
+    var newNode = new Node(data);
+
+    if (this.length === 0 ) {
+        this.header = newNode;
+        this.tail = newNode;
+    } else {
+        if (position === 0) {
+            this.header.prev = newNode;
+            newNode.next = this.header;
+            this.header = newNode;
+        } else if(position === this.length) {
+            newNode.prev = this.tail;
+            this.tail.next = newNode;
+            this.tail = newNode;
+        } else {
+            var current = this.header;
+            var index = 0;
+            while (index++ < position) {
+                current = current.next;
+            }
+            current.prev.next = newNode;
+            newNode.prev = current.prev;
+            current.prev = newNode;
+            newNode.next = current;
+        }
+    }
+    this.length += 1;
+    return data;
+}
+
+DoublyLinkedList.prototype.get = function(position) {
+    // 越界判断
+    if (position < 0 || position >= this.length) {
+        console.error('越界');
+        return;
+    }
+
+    var current, index;
+    if(this.length / 2 >= position) {
+        current = this.header;
+        index = 0;
+        while(index ++ < position) {
+            current = current.next;
+        }
+        return current.data;
+    } else {
+        current = this.tail;
+        index = this.length - 1;
+        while(index -- > position) {
+            current = current.prev;
+        }
+        return current.data;
+    }
+
+}
+
+DoublyLinkedList.prototype.indexOf = function(data) {
+    var current = this.header;
+    var index = 0;
+
+    while(current) {
+        if(current.data === data) {
+            return index;
+        }
+        current = current.next;
+        index += 1;
+    }
+
+    return -1;
+}
+DoublyLinkedList.prototype.update = function(position, newData) {
+    // 越界判断
+    if (position < 0 || position >= this.length) {
+        console.error('越界');
+        return;
+    }
+
+    var current = this.header;
+    var index = 0;
+
+    while(index ++ < position) {
+        current = current.next;
+    }
+    current.data = newData;
+    return true;
+}
+
+DoublyLinkedList.prototype.removeAt = function(position) {
+    // 越界判断
+    if (position < 0 || position >= this.length) {
+        console.error('越界');
+        return;
+    }
+
+    var current = this.header;
+    if (this.length === 1) {
+        this.header = null;
+        this.tail = null;
+    } else {
+        if(position === 0) {
+            this.header.next.prev = null;
+            this.header = this.header.next;
+        } else if( position === this.length - 1) {
+            current = this.tail;
+            this.tail.prev.next = null;
+            this.tail = this.tail.prev;
+        } else {
+            var index = 0;
+
+            while(index ++ < position) {
+                current = current.next;
+            }
+            current.prev.next = current.next;
+            current.next.prev = current.prev;
+        }
+    }
+    this.length -= 1;
+    return current.data;
+}
+
+DoublyLinkedList.prototype.remove = function(data) {
+    var index = this.indexOf(data);
+    return this.removeAt(index);
+}
+DoublyLinkedList.prototype.size = function() {
+    return this.length;
+}
+DoublyLinkedList.prototype.isEmpty = function() {
+    return this.length === 0;
+}
+DoublyLinkedList.prototype.getHeader = function() {
+    return this.header.data;
+}
+DoublyLinkedList.prototype.getTail = function() {
+    return this.tail.data;
+}
+```
+
+## 集合
+
+其实最常用的是使用哈希表来实现集合，但我还没学到那，就先用对象来封装拉!
+
+1. **无序的**，**不能重复的**
+2. 可以看成**特殊**的**数组**
+3. 不能通过下标值进行访问，不同的重复意味着相同的对象在集合中只会存在一份
+
+其实 ES6 中就包含了Set类，所以我们可以不封装，直接使用它.
+
+```js
+function Set() {
+    this.items = {};
+}
+Set.prototype.add = function (value) {
+    if (this.has(value)) {
+        return false;
+    }
+    this.items[value] = value;
+    return true;
+}
+Set.prototype.has = function(value) {
+    return this.items.hasOwnProperty(value);
+}
+Set.prototype.remove = function (value) {
+    if(!this.has(value)) {
+        // 判断是否有该属性
+        return false;
+    }
+
+    delete this.items[value];
+    return true;
+}
+Set.prototype.clear = function() {
+    this.items = {}
+}
+Set.prototype.size = function() {
+    return Object.keys(this.items).length;
+}
+Set.prototype.values = function() {
+    return Object.keys(this.items)
+}
+// 并集
+Set.prototype.union = function(otherSet) {
+    // this 表示当前集合 A
+    // otherSet 表示另一个集合 B
+
+    var unionSet = new Set();
+    var values = this.values();
+    for(var i = 0; i < values.length; i++) {
+        unionSet.add(values[i]);
+    }
+    values = otherSet.values();
+    for(var i = 0; i < values.length; i++) {
+        unionSet.add(values[i]);
+    }
+    return unionSet;
+}
+// 交集
+Set.prototype.intersection = function(otherSet) {
+    var intersection = new Set();
+
+    var values = this.values();
+    for(var i = 0; i < values.length; i++) {
+        var item = values[i];
+        if(otherSet.has(item)) {
+            intersection.add(item);
+        }
+    } 
+
+    return intersection;
+}
+// 差集
+Set.prototype.difference = function(otherSet) {
+
+    var differenceSet = new Set();
+
+    var values = this.values();
+    for(var i = 0; i < values.length; i++) {
+        var item = values[i];
+        if(!otherSet.has(item)) {
+            differenceSet.add(item);
+        }
+    }
+    return differenceSet;
+}
+// 判断子集：A 是不是 B 的子集
+Set.prototype.subset = function(otherSet) {
+    var values = this.values();
+    for(var i = 0; i < values.length; i++) {
+        var item = values[i];
+        if(!otherSet.has(item)) {
+            return false;
+        }
+    }
+    return true;
+}
+```
+

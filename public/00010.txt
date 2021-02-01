@@ -1,0 +1,723 @@
+﻿## 变量声明
+
+### 区别
+
+- `var`
+  - 函数作用域，可重新赋值，可重复声明，有变量提升
+- `let`
+  - 块级作用域，不可重新赋值，不可重复声明，没有变量提升（因为零时性死区）
+
+### 应用场景
+
+1. `let` 取代 `IIFE(立即执行函数)`
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<button class="but">1</button>
+<button class="but">2</button>
+<button class="but">3</button>
+<script>
+var but = document.getElementsByClassName('but');
+for (var i = 0; i <but.length ; i ++) {
+    (function (i) {
+        but[i].onclick = function () {
+            console.log(i);
+        }
+    })(i);
+}
+</script>
+</body>
+</html>
+```
+
+`补充：`
+
+- 块级作用域：
+
+  - `{}` 是块级作用域 ，里面声明的变量，只会在这个`{}` 中有效，出来 `{}` 就无效了
+
+- IIFE（立即执行函数）:
+
+  - 浏览器解析到 IIFE 就立即执行函数，叫做立即执行函数
+
+  - ```javascript
+    //用法一：
+    (function (i) {
+    	//your code
+    })(i);
+    //用法二：
+    (function (i) {
+    	//your code
+    }(i));
+    ```
+
+  - 应用场景：防止污染全局作用域
+
+- 变量提示：
+
+  - 这是 ES 5 的知识，这里不多赘述
+  - 如果有什么明白，请看：https://developer.mozilla.org/zh-CN/docs/Glossary/Hoisting
+
+### 总结
+
+在使用时，应尽量使用 `let` 避免使用 `var`
+
+## 常量声明
+
+- `const`
+  - 块级作用域，只可以赋值一次，不可修改
+  - `注意` : 如果 `const` 是一个对象，在没有改变其`栈内存`（指针）中的值，是可以对对象的属性进行修改，增加，删除
+
+`补充`：
+
+如果连属性的值你都不想将其修改，你可以使用：
+
+```javascript
+const obj = Object.freeze(对象名)
+```
+
+`freeze` 是冻结的含义
+
+
+
+## 箭头函数
+
+箭头函数其实就是匿名函数
+
+### 声明
+
+```javascript
+(参数列表)=>{
+    // Your Code
+}
+```
+
+### 优点
+
+箭头函数 与 function 相比有很多优势：
+
+- 简明的语法
+- 可以隐式返回
+- 不绑定 `this`
+
+
+
+#### 如何简明
+
+参数列表中只有一个参数，就可以把参数列表两旁的圆括号省略
+
+```shell
+参数=>{
+    // Your Code
+}
+```
+
+#### 隐式返回
+
+如果`{}`里面只有一个 return ，箭头后面花括号可以省略
+
+```javascript
+(参数列表)=>语句
+```
+
+#### 不绑定 this
+
+箭头函数的作用域指向的是父级作用域
+
+### 缺点
+
+因为箭头函数的作用域的特性，在以下几个方面不易使用
+
+- 沿用之前的对象方法的调用
+- 需要绑定 this 值的时候
+- 箭头函数没有`arguments`,但 ES 6 有 `...args`
+
+
+
+## 参数默认值
+
+### 用法
+
+```javascript
+function add (a = 1, b = 2) {
+    return a+b;
+}
+
+add()						//返回 3
+add(3)						//返回 5
+add(,3)						//返回 报错
+add(undefined,3)			//返回 5
+add(null,3)					//返回 0
+```
+
+
+
+## 模板字符串
+
+模板字符串就是：```(反引号)` 
+
+### 用法
+
+```javascript
+let a = 1;
+let b = 2;
+console.log(`${a} + ${b} = ${a+b}`);
+```
+
+在模板字符串中可以使用`${}` 来引用变量的值
+
+
+
+注意在模板字符串中：
+
+- 可以使用`三元表达式`
+- 可以嵌套模板字符串
+
+
+
+## 剩余参数
+
+**剩余参数**语法允许我们将一个不定数量的参数表示为一个数组。
+
+### 语法
+
+```javascript
+function sum(...args){
+	return args.reduce((a,b)=>{
+		return a + b;
+    })
+}
+sum(1,2,3,4,5,6)
+```
+
+```js
+let [a,...b] = [1,2,3,4]
+```
+
+### 特点
+
+- 剩余参数必须是最好一个产生
+- 并且参数名前加上`...`
+- 剩余参数是一个的真数组
+
+## 展开语法
+
+**展开语法(Spread syntax),** 可以在函数调用/数组构造时, 将数组表达式或者string在语法层面展开；还可以在构造字面量对象时, 将对象表达式按key-value的方式展开。
+
+### 语法
+
+```js
+let a = [1,2,3]
+let b = [1,23,c]
+let a_b = [...a,...b]
+```
+
+```js
+let a = [...'112sdfasd']
+```
+
+展开语法与剩余参数是相对的
+
+注意：
+
+```js
+let a = [1,2,3]
+let b = [1,23,'c']
+let a_b = [...a,...b]
+a.push('ni')
+//a_b = [1,2,3,'ni',1,23,'c']
+
+```
+
+
+
+## 标签模板字符串
+
+标签模板其实不是模板，而是函数调用的一种特殊形式。“标签”指的是函数，紧跟在后面的模板字符串就是它的参数。
+
+```javascript
+let a = 5;
+let b = 10;
+tag `Hello ${a+b} world ${a*b}`;
+function tag(strings,变量1，变量2) {
+    // your code
+}
+```
+
+- 第一个参数表示：模板字符串中的字符串
+- 后面的参数表示：模板字符串中的变量
+  - 这些变量，从左往右依次排列的
+
+标签模板字符串有很多妙用，可以添加很多样式
+
+## 字符串方法
+
+- startWith()
+- endWith()
+- includes()
+- repeat()
+
+### startWith()
+
+检查字符串是否已什么开头，返回 Boolean
+
+```javascript
+'asdfasdfas'.startWith('a')	//返回 true
+```
+
+### endWith()
+
+检查字符串是否已什么结尾，返回 Boolean
+
+```java
+'asdfasdfas'.startWith('s')	//返回 true
+```
+
+### includes()
+
+检查字符串中是否有什么，返回 Boolean
+
+```javascript
+'asdfasdfas'.startWith('fae2')	//返回 false
+```
+
+### repeat()
+
+重复该字符串多少次，返回重复的值
+
+```javascript
+'*'.repeat(5)		//返回 *****
+```
+
+## 解构赋值
+
+解构赋值很像 Python中的赋值
+
+**解构赋值**语法是一种 Javascript 表达式，它使得将**值**从`数组`，或**属性**从`对象`，提取到不同的变量中，成为可能。
+
+当我们定义多个变量的时候还要一个一个去命名和赋值，非常麻烦，如果用了解构赋值，至少在语法上很简介
+
+```javascript
+let [a,b,c] = [1,2,3]
+```
+
+`注意：`
+
+**解构赋值意思就是说两侧的结构和格式都必须一模一样**
+
+```javascript
+let [i,j] = [1,[2,3]]
+```
+
+还可以使用`默认值`
+
+```javascript
+let [a,b,c,d = 'd is null'] = [1,2,3]
+//a = 1
+//b = 2
+//c = 3
+//d = 'd is null'
+```
+
+还可以使用`剩余参数`
+
+```javascript
+let numbers = [1,2,3,4,5,6,7,8]
+const [a,...args] = numbers
+//a = 1
+//args = [2,3,4,5,6,7,8]
+```
+
+可以进行交换
+
+```javascript
+let a=10,b=20;
+[a,b] = [b,a]
+//a = 20
+//b = 10
+```
+
+## 循环
+
+### for of
+
+```javascript
+for (let i of args) {
+	console.log(i)
+}
+```
+
+- for of 中的 `i` 是数组中的值
+- for of 不会遍历原型上的可枚举属性
+- 支持 break 和 continue
+- 除了对象不支持，其他的大多数都支持
+
+## 数组
+
+### Array.from() 和 Array.of()
+
+- Array.from() 
+  - 创建一个类似数组或可迭代对象中创建一个新的数组
+- Array.of() 
+  - 创建一个具有可变数量参数的新数组实例，而不考虑参数的数量或类型
+
+```javascript
+let obj = {
+	0 : a,
+	1 : b,
+	2 : c,
+	length : 3
+}
+let arg = Array.from(obj)
+```
+
+```javascript
+let arg = Array.of(1,2,3)		//返回[1,2,3]
+let arg = Array.of(1)			//返回[1]
+```
+
+### find() 和 findIndex()
+
+```js
+let array = [5, 12, 8, 130, 44];
+
+let found = array.find(function(element) {
+  return element > 10;
+});
+```
+
+find()返回数组中满足回调函数的第一个元素的值。否则返回 `undefined`
+
+```js
+let array = [5, 12, 8, 130, 44];
+
+let found = array.find(function(ele) {
+  return ele > 10;
+});
+```
+
+find()返回数组中满足回调函数的第一个元素的索引值。否则返回 `undefined`
+
+
+
+## 对象字面量
+
+```js
+let name = 'zhang';
+let age = 18;
+let	person = {
+	name:name,	
+    age:age,
+    getname:function(){
+		console.log(`hello ${this.name}`);
+    }
+}
+//等价于
+let	person = {
+	name,		//属性简写
+    age,		//方法简介
+    getname(){
+		console.log(`hello ${this.name}`);
+    }
+}
+```
+
+## promise
+
+**Promise** 对象用于表示一个异步操作的最终状态（完成或失败），以及该异步操作的结果值。防止回调地狱的发生，增加代码的可阅读性
+
+```js
+const promise = new Promise(function(resolve, reject) {
+  //your ajax 请求
+  if(/* your ajax */){
+    resolve(value);
+  } else {
+    reject(error);
+  }
+});
+
+promise
+    .then(function(value) {
+      	console.log(value); //可以在这令里进行数据处理
+    })
+	.catch(function(error) {
+		console.log(error)
+	});
+```
+
+## Symbol 数据类型
+
+Symbol 是继 JavaScript 推出的第七种数据类型，目的：解决对象属性名冲突的问题，还可以定义私有属性
+
+### 语法
+
+```js
+let symbol = Symbol('描述');
+let classRoom = {
+	[Symbol('zhang')] : {grade:90,age:13},
+	[Symbol('zhang')] : {grade:60,age:12},
+	[Symbol('zhang')] : {grade:90,age:19},
+}
+```
+
+定义了Symbol 中的对象属性是不可遍历的
+
+不过 es6 提过了一个`Object.getOwnPropertySymbols()` 来获取symbol中的属性值
+
+```js
+let classRoom = {
+	[Symbol('zhang')] : {grade:90,age:13},
+	[Symbol('zhang')] : {grade:60,age:12},
+	[Symbol('zhang')] : {grade:90,age:19},
+}
+let syml = Object.getOwnPropertySymbols(classRoom).map(sym = > classRoom[sym])
+```
+
+## class
+
+class （类）是 ES6 用来创建对象的模板，它本质上是函数，但是它没有变量提升
+
+```js
+class Persion {
+	//your code
+}
+//等价于
+let Persion = class  {
+	//your code
+}
+```
+
+### constructor
+
+**constructor** 是一种用于创建和初始化`class`创建的对象的特殊方法，在一个类中只可以有一个 `constructor` ，否则报错
+
+```js
+class Persion {
+	constructor (age,name) {
+		this.age = age;
+        this.name = name;
+    }
+}
+let persion1 = new Persion();
+```
+
+以上代码，会创建一个名为persion1的实例，包含 age,name 属性
+
+```js
+class Persion {
+	constructor (age,name) {
+		this.age = age;
+        this.name = name;
+    }
+    
+    yelldec () {
+		console.log(`Hi,I'm is ${this.name},It's ${this.age}`);
+    }
+}
+let persion2 = new Persion();
+```
+
+以上代码，会创建一个名为persion2的实例，包含 age,name 属性，并且在原型上还有 yelldec 方法
+
+`注意：`
+
+yelldec() 和 constructor() 之间不可以加`,(逗号)` ,否则报错
+
+### extends
+
+**extends**  (继承)关键字用于类声明或者类表达式中，以创建一个类，该类是另一个类的子类。
+
+```js
+class Persion () {
+    constructor (age,name) {
+		this.age = age;
+        this.name = name;
+    }
+     yelldec () {
+		console.log(`Hi,I'm is ${this.name},It's ${this.age}`);
+    }
+}
+class Man extends Persion () {
+    constructor (age,name) {
+        super(age,name)		//父类
+    }
+}
+```
+
+
+
+### static
+
+类（class）通过 **static** 关键字定义静态方法。**不能在类的实例上调用静态方法，而应该通过类本身调用**。这些通常是实用程序方法，例如创建或克隆对象的功能。
+
+```js
+class Persion {
+	constructor (age,name) {
+		this.age = age;
+        this.name = name;
+    }
+    static printstat(){
+		console.log('200')
+    }
+}
+Persion.printstat()			//静态方法
+```
+
+## Set
+
+它类似于数组，但是成员的值都是唯一的，没有重复的值。它不可以通过索引值获取元素
+
+`Set`本身是一个构造函数，用来生成 Set 数据结构。
+
+### 语法
+
+```js
+let 变量名 = new Set();
+```
+
+### 方法
+
+- `add(value)` ：添加值
+
+  - 如果你添加已经存在的元素时，`Set` 会忽略这个添加的元素
+
+  - ```js
+    let set = new Set();
+    set.add('1');	// {'1'}
+    set.add('1');	// {'1'}
+    ```
+
+- `size` ：获取 set 中的元素个数
+
+  - ```js
+    let set = new Set();
+    set.add('1');	//size: 1
+    set.add(1);		//size: 2
+    set.size;		//size: 2
+    ```
+
+- `delete(value)` ：删除 `Set` 中传入的值，返回一个布尔值，表示是否删除成功
+
+  - ```js
+    let set = new Set();
+    set.add('1');	// {'1'}
+    set.add(1);		// {'1',1}
+    set.delete(1);	// true
+    ```
+
+- `has(value)` ：返回一个布尔值，表示该值是否为`Set`的成员。
+
+  - ```js
+    let set = new Set();
+    set.add('1');	// {'1'}
+    set.add(1);		// {'1',1}
+    set.has(1);		// true
+    ```
+
+- `clear()` ：清除所有元素，没有返回值。
+
+  - ```js
+    let set = new Set();
+    set.add('1');	// {'1'}
+    set.add(1);		// {'1',1}
+    set.clear();	// {}
+    ```
+
+
+
+`注意：`
+
+可以用 for of 或 next() 、forEach() 来遍历
+
+### 数组去重
+
+```js
+let num = [1,2,3,4,5,6,7,8,2,1,3,4,5,10];
+numset = new Set(num);		//先转化为set，把重复的去除
+num = [...numset]			//在把set转化为数组
+```
+
+## weakSet
+
+WeakSet 结构与 Set 类似，也是不重复的值的集合。但是，它与 Set 有几个区别：
+
+- WeakSet 的成员只能是对象，而不能是其他类型的值。
+- 不能通过for of 或 forEach 方法遍历
+- 没有 clear() 方法，但是它可以自我清除
+
+## Map
+
+它类似于对象，也是键值对的集合，但是“键”的范围不限于字符串，各种类型的值（包括对象）都可以当作键
+
+### 语法
+
+```js
+let map = new Map();
+```
+
+### 方法
+
+- `set(key,vlaue)` ：添加一个键值对
+
+  - ```js
+    let map = new Map();
+    map.set('zhang',20)
+    ```
+
+- `size` ：获取 set 中的元素个数
+
+  - ```js
+    let map = new Map();
+    map.set('zhang',20)
+    map.size		//size 1
+    ```
+
+- `get(key)` ：找出对应的值，若果找不到，返回 undefined
+
+  - ```js
+    let map = new Map();
+    map.set('zhang',20);
+    map.set('li',25);
+    map.get('li')		// 25 
+    ```
+
+- `has(key)` ：判断 `Map` 中是否有这个成员，返回 true 或 false
+
+  - ```js
+    let map = new Map();
+    map.set('zhang',20);
+    map.set('li',25);
+    map.has('li')		// true 
+    ```
+
+- `delete(key)` ：删除传入 key 与之对应的成员，返回 true 或 false
+
+- `clear()` ：清除所有成员，没有返回值
+
+  - ```js
+    let map = new Map();
+    map.set('zhang',20);
+    map.set('li',25);
+    map.clear()		
+    // Map(0){}
+    ```
+
+## WeakMap
+
+`WeakMap`结构与`Map`结构类似，也是用于生成键值对的集合。
+
+区别：
+
+- WeakMap 的键只接受对象，不接受其他的类型
+- 没有clear 方法
+- 没有size 属性
+- 没有什么东西引用的话，就会用垃圾回收
+
+
+时间：2019年4月14日15:22:59

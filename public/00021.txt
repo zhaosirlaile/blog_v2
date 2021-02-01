@@ -1,0 +1,89 @@
+﻿vuex
+
+## 介绍
+
+官方解释：Vuex 是一个专为 Vue.js 应用程序开发的**状态管理模式**。它采用集中式存储管理应用的所有组件的状态，并以相应的规则保证状态以一种可预测的方式发生变化
+
+个人理解：如果你用过 vue 的组件传值的话（尤其是后代组件的传值，兄弟组件的传值）你就知道是非常麻烦的。vuex 就是一个 vue 全局的数据仓库，里面存储的都是共享数据，任何组件都可以访问其中的数据
+
+`注意：`
+
+- vuex 是一个 vue 的插件
+- 使用 vuex 时仅仅需要把共享的数据放进去就可以了
+- 组件中私有的数据没有必要放进 vuex 中
+
+官网地址：https://vuex.vuejs.org/zh/
+
+## 安装
+
+### 下载引用
+
+在 Vue 之后引入 `vuex` 会进行自动安装：
+
+```html
+<script src="/path/to/vue.js"></script>
+<script src="/path/to/vuex.js"></script>
+```
+
+### NPM
+
+```bash
+npm install vuex --save
+```
+
+在一个模块化的打包系统中，您必须显式地通过 `Vue.use()`来安装 Vuex：
+
+```js
+import Vue from 'vue'
+import Vuex from 'vuex'
+
+Vue.use(Vuex)		// 把 vuex 挂载到 vue
+```
+
+## 使用
+
+这是 `main.js` 文件（入口文件）
+
+```js
+import Vue from 'vue'
+
+import Vuex from 'vuex'		//1. 导入 vuex
+Vue.use(Vuex)				//2. 把 vuex 挂载到 Vue 上
+
+let store = new Vuex.Store({	//3. 生成一个实例对象
+  state: {
+    count: 0
+  },
+  mutations: {
+      add(state){
+		state.count ++;
+      }
+  },
+})
+
+//4. 把刚刚生成的store实例对象，挂载到Vue实例对象上
+let app = new Vue({
+    el: '#app',
+    store		// 这是把刚刚生成的store实例对象，挂载到Vue实例对象上的步骤
+})
+
+```
+
+`注意：`
+
+vuex 生成的对象中：
+
+- state：表示存储的数据，和 vue 实例对象中的 data 类似
+  - 组件中想要访问，vuex 生成的实例对象中的 state 的数据，就只能通过 `this.$store.state.count` 来获取，`store` 是你生成的 vuex 生成的实例对象
+  - 插值表达式可以直接使用：`{{ $store.getters.optCount }}`
+- mutations：表示要使用的方法，和 vue 实例对象中的 methods 类似
+  - 组件中想要调用 `mutations` 中的方法，只能使用 `this.$store.commit(方法名)` 来使用
+  - `mutations` 中函数参数列表中，最多支持两个参数
+    - 第一个参数：该参数默认是 `state` 中的数据，你需要声明该参数就可以了
+    - 第二个参数：通过 commit 提交过来的参数，可以通过数组、对象的方式传递多个参数
+- getters：它的使用方法就像vue中的component计算属性一样，但是当它的依赖值发生了改变才会被重新计算，这是又有一点像 watch
+
+
+
+如果想要操作 store 中的 `state` 值，只能通过调用 `mutations` 提供的方法，才能操作对应的数据，不推荐直接操作 state 中的数据，因为万一导致了数据的紊乱，不能快速定位到错误的原因，因为，每个组件都可能有操作数据的方法；
+

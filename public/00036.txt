@@ -1,0 +1,236 @@
+## 栈
+
+**先进后出**的数据结构：先进去的数据在底部，最后取出，后进去的数据在顶部，最先被取出。
+
+如下图所示：
+
+![1572184294492](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1572184294492.png)
+
+```js
+function Stack() {
+    this.items = [];
+}
+Stack.prototype.push = function(element) {	// 入栈
+    this.items.push(element);
+}
+Stack.prototype.pop = function() {			// 出栈
+    return this.items.pop();
+}
+Stack.prototype.peek = function() {			// 查看栈顶
+    return this.items[this.items.length - 1];
+}
+Stack.prototype.isEmpty = function() {		// 判断栈是否为空
+    return this.items.length === 0;
+}
+Stack.prototype.size = function () {		// 栈中的个数
+    return this.items.length;
+}
+Stack.prototype.toString = function() {		// 返回栈中的具体数据
+    var resultString = '';
+    for(var i = 0; i < this.items.length; i++) {
+        resultString += this.items[i] + ' ';
+    }
+    return resultString
+}
+
+// 以下代码测试：
+var s = new Stack();
+s.push('sdfsdf');
+s.push(12)
+s.push(100);
+s.push(123);
+alert(s);
+s.pop();
+s.pop();
+alert(s.peek());
+```
+
+## 队列
+
+**先进先出**的数据结构：特殊之处在于它只允许在队列的**对头**进行删除操作，而在**队列**的队尾进行插入操作。
+
+![1572184668794](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1572184668794.png)
+
+基于数组的封装：
+
+```js
+function Queue() {
+    this.items = [];
+}
+Queue.prototype.enqueue = function(element) {	// 入队
+    this.items.push(element);
+}
+Queue.prototype.dequeue = function() {			// 出队
+    return this.items.shift();
+}
+Queue.prototype.front = function() {			// 队头
+    return this.items[0];
+}
+Queue.prototype.isEmpty = function() {			// 空
+    return this.items.length == 0;
+}
+Queue.prototype.size = function() {				// 长度
+    return this.items.length;
+}
+Queue.prototype.toString = function() {
+    var resultString = '';
+    for(var i = 0; i < this.items.length; i++) {
+        resultString += this.items[i] + ' ';
+    }   
+    return resultString;
+}
+
+// 以下为测试代码
+var queue = new Queue();
+queue.enqueue(12)
+queue.enqueue(100)
+queue.enqueue(15)
+queue.enqueue(20)
+queue.enqueue(50)
+alert(queue);
+queue.dequeue();
+alert(queue);
+console.log(queue.front());
+```
+
+## 单向链表
+
+**单向链表每个节点包含当前节点的数据和一个指向下一个节点的引用，末尾的元素的指向null** ，但不同于数组，链表中的元素在内存中不必是连续的空间
+
+![1572185156430](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1572185156430.png)
+
+```js
+// 辅助类：创建LinkedList中的每一个元素的
+var Node = function(data) {
+    this.data = data;
+    this.next = null;
+}
+
+// 单项链表
+function LinkedList() {
+    this.header = null;
+    this.length = 0;
+}
+LinkedList.prototype.append = function(data) {
+    var newNode = new Node(data);
+
+    if (this.length === 0 ) {
+        this.header = newNode;
+    } else {
+        var current = this.header;
+        // debugger
+        while (current.next) {
+            current = current.next;
+        }
+        current.next = newNode;
+    }
+    this.length += 1;
+}
+LinkedList.prototype.toString = function() {
+    var current = this.header;
+    var listString = '';
+    while(current) {
+        listString += current.data + " ";
+        current = current.next;
+    }
+    return listString.trim();
+}
+LinkedList.prototype.insert = function(position, data) {
+    if(position < 0 && position > this.length) {
+        console.error('下标越界');
+        current;
+    }
+    var newNode = new Node(data);
+    if (position === 0) {
+        newNode.next = this.header;
+        this.header = newNode;
+    } else {
+        var index = 0;
+        var current = this.header;
+        var previous = null;
+        while(index < position) {
+            previous = current;
+            current = current.next;
+            index ++;
+        }
+        previous.next = newNode;
+        newNode.next = current;
+    }
+
+    this.length ++;
+}
+LinkedList.prototype.get = function(position) {
+    if (position < 0 || position >= this.length) {
+        console.error('下标越界');
+        return ;
+    }
+    var current = this.header;
+    var index = 0;
+    while (index++ < position) {
+        current = current.next;
+    }
+    return current.data;
+}
+LinkedList.prototype.indexOf = function(data) {
+    var current = this.header;
+    var index = 0;
+    while(current) {
+        if(current.data === data) {
+            return index;
+        }
+        current = current.next;
+        index ++;
+    }
+
+    console.error('没有数据');
+    return;
+}
+LinkedList.prototype.update = function(position, element) {
+    if (position < 0 || position >= this.length) {
+        console.error('下标越界');
+        return ;
+    }
+    var current = this.header;
+    var index = 0;
+    while (index++ < position) {
+        current = current.next;
+    }
+    current.data = element;
+    return element;
+}
+LinkedList.prototype.removeAt = function(position) {
+    if (position < 0 || position >= this.length) {
+        console.error('下标越界');
+        return;
+    }
+    var current = this.header;
+    if(position === 0 ) {
+        this.header = this.header.next;
+    } else {
+        var index = 0;
+        var previous = null;
+        while(index ++ < position){
+            previous = current;
+            current = current.next;
+        }
+        previous.next = current.next;
+    }
+    this.length --;
+    return current.data;
+}
+LinkedList.prototype.remove = function(data) {
+    var position = this.indexOf(data);
+    return this.removeAt(position);
+}
+
+// 以下为测试代码
+var x = new LinkedList();
+x.append(12);
+x.append(1);
+x.append('1');
+console.log(x);
+```
+
+
+
+![1572186368319](https://zhaosirlaile.oss-cn-beijing.aliyuncs.com/contentImg/1572186368319.png)
